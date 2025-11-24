@@ -1,101 +1,129 @@
-import Image from "next/image";
+import { Flame, Plus, Utensils, Activity } from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = createClient();
+
+  // 1. Check Auth
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  // 2. Fetch Profile (or create default if missing)
+  let { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) {
+    // Lazy initialization for new users
+    const { data: newProfile, error } = await supabase
+      .from("profiles")
+      .insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || "Friend",
+      })
+      .select()
+      .single();
+
+    if (!error) profile = newProfile;
+  }
+
+  // 3. Fetch Today's Data (Mocked for now, will be real DB calls next)
+  // We will replace these with real `daily_activity` and `meal_entries` queries
+  const consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  const burned = 0;
+
+  const goals = {
+    calories: profile?.calorie_goal || 2400,
+    protein: profile?.protein_goal || 150,
+    carbs: profile?.carbs_goal || 250,
+    fat: profile?.fat_goal || 80,
+  };
+
+  const remaining = (goals.calories + burned) - consumed.calories;
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <main className="min-h-screen p-4 md:p-8 space-y-8 max-w-md mx-auto md:max-w-4xl">
+      {/* Header */}
+      <header className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-display font-bold text-white">Today</h1>
+          <p className="text-muted-foreground">
+            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/20">
+          {profile?.email?.[0].toUpperCase() || "U"}
+        </div>
+      </header>
+
+      {/* Main Stats Circle */}
+      <section className="relative flex flex-col items-center justify-center py-8">
+        <div className="w-64 h-64 rounded-full border-8 border-secondary flex flex-col items-center justify-center relative">
+          {/* Dynamic Progress Border would go here */}
+          <div className="absolute inset-0 rounded-full border-8 border-primary border-t-transparent rotate-45 opacity-50" />
+          <span className="text-5xl font-display font-bold text-white">{remaining}</span>
+          <span className="text-sm text-muted-foreground uppercase tracking-wider mt-1">Remaining</span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-8 mt-8 w-full max-w-sm text-center">
+          <div>
+            <div className="text-2xl font-bold text-emerald-400">
+              {goals.protein - consumed.protein}g
+            </div>
+            <div className="text-xs text-muted-foreground">Protein</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-blue-400">
+              {goals.carbs - consumed.carbs}g
+            </div>
+            <div className="text-xs text-muted-foreground">Carbs</div>
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-purple-400">
+              {goals.fat - consumed.fat}g
+            </div>
+            <div className="text-xs text-muted-foreground">Fat</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-4">
+        <Link href="/log-food" className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
+          <div className="h-10 w-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Utensils size={20} />
+          </div>
+          <span className="font-medium">Log Food</span>
+        </Link>
+        <button className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
+          <div className="h-10 w-10 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Flame size={20} />
+          </div>
+          <span className="font-medium">Burn Calories</span>
+        </button>
+      </div>
+
+      {/* Recent Activity (Placeholder) */}
+      <section className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Recent</h2>
+          <button className="text-primary text-sm hover:underline">View All</button>
+        </div>
+
+        <div className="p-8 text-center text-muted-foreground glass-card rounded-xl">
+          No activity yet today.
+        </div>
+      </section>
+    </main>
   );
 }
