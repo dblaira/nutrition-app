@@ -12,9 +12,20 @@ const MOCK_RESULTS = [
     { id: "3", name: "Chicken Breast", brand: "Kirkland", calories: 165, protein: 31, carbs: 0, fat: 3.6, serving_size: "100g" },
 ];
 
+interface FoodItem {
+    id: string;
+    name: string;
+    brand: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    serving_size: string;
+}
+
 export default function LogFoodPage() {
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<unknown[]>([]);
+    const [results, setResults] = useState<FoodItem[]>([]);
     const [, startTransition] = useTransition();
     const [selectedMeal, setSelectedMeal] = useState("Breakfast");
 
