@@ -1,4 +1,4 @@
-import { Flame, Plus, Utensils, Activity } from "lucide-react";
+import { Flame, Utensils } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";

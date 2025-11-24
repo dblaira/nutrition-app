@@ -14,8 +14,8 @@ const MOCK_RESULTS = [
 
 export default function LogFoodPage() {
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState<any[]>([]);
-    const [isPending, startTransition] = useTransition();
+    const [results, setResults] = useState<unknown[]>([]);
+    const [, startTransition] = useTransition();
     const [selectedMeal, setSelectedMeal] = useState("Breakfast");
 
     const handleSearch = (term: string) => {
@@ -48,8 +48,8 @@ export default function LogFoodPage() {
                         key={meal}
                         onClick={() => setSelectedMeal(meal)}
                         className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${selectedMeal === meal
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                             }`}
                     >
                         {meal}
@@ -97,7 +97,7 @@ export default function LogFoodPage() {
 
                 {query.length > 1 && results.length === 0 && (
                     <div className="text-center text-muted-foreground py-8">
-                        No foods found. Try "Oatmeal" or "Egg".
+                        No foods found. Try &quot;Oatmeal&quot; or &quot;Egg&quot;.
                     </div>
                 )}
             </div>
