@@ -37,10 +37,61 @@ export default async function Home() {
     if (!error) profile = newProfile;
   }
 
-  // 3. Fetch Today's Data (Mocked for now, will be real DB calls next)
-  // We will replace these with real `daily_activity` and `meal_entries` queries
-  const consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-  const burned = 0;
+  // 3. Fetch Today's Data
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data: meals } = await supabase
+    .from("meals")
+    .select(`
+      id,
+      name,
+      meal_entries (
+        id,
+        quantity,
+        foods (
+          name,
+          calories,
+          protein,
+          carbs,
+          fat
+        )
+      )
+    `)
+    .eq("user_id", user.id)
+    .eq("date", today);
+
+  // Calculate Totals
+  let consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  const recentActivity: any[] = [];
+
+  meals?.forEach((meal) => {
+    meal.meal_entries.forEach((entry: any) => {
+      const food = entry.foods;
+      const multiplier = entry.quantity;
+
+      consumed.calories += food.calories * multiplier;
+      consumed.protein += food.protein * multiplier;
+      consumed.carbs += food.carbs * multiplier;
+      consumed.fat += food.fat * multiplier;
+
+      recentActivity.push({
+        id: entry.id,
+        name: food.name,
+        calories: Math.round(food.calories * multiplier),
+        meal: meal.name,
+      });
+    });
+  });
+
+  // Round totals
+  consumed = {
+    calories: Math.round(consumed.calories),
+    protein: Math.round(consumed.protein),
+    carbs: Math.round(consumed.carbs),
+    fat: Math.round(consumed.fat),
+  };
+
+  const burned = 0; // We'll hook this up to 'daily_activity' later
 
   const goals = {
     calories: profile?.calorie_goal || 2400,
@@ -113,16 +164,30 @@ export default async function Home() {
         </button>
       </div>
 
-      {/* Recent Activity (Placeholder) */}
+      {/* Recent Activity */}
       <section className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Recent</h2>
           <button className="text-primary text-sm hover:underline">View All</button>
         </div>
 
-        <div className="p-8 text-center text-muted-foreground glass-card rounded-xl">
-          No activity yet today.
-        </div>
+        {recentActivity.length > 0 ? (
+          <div className="space-y-2">
+            {recentActivity.map((item) => (
+              <div key={item.id} className="glass-card p-4 rounded-xl flex justify-between items-center">
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-xs text-muted-foreground">{item.meal}</p>
+                </div>
+                <span className="font-bold">{item.calories} cal</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-muted-foreground glass-card rounded-xl">
+            No activity yet today.
+          </div>
+        )}
       </section>
     </main>
   );

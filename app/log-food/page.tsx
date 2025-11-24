@@ -6,11 +6,7 @@ import Link from "next/link";
 import { searchFoods, logFood } from "./actions";
 
 // Mock initial data until we have a real DB seed
-const MOCK_RESULTS = [
-    { id: "1", name: "Oatmeal", brand: "Quaker", calories: 150, protein: 5, carbs: 27, fat: 3, serving_size: "1 packet" },
-    { id: "2", name: "Egg (Large)", brand: "Generic", calories: 70, protein: 6, carbs: 0, fat: 5, serving_size: "1 egg" },
-    { id: "3", name: "Chicken Breast", brand: "Kirkland", calories: 165, protein: 31, carbs: 0, fat: 3.6, serving_size: "100g" },
-];
+
 
 interface FoodItem {
     id: string;
@@ -36,7 +32,7 @@ export default function LogFoodPage() {
         if (term.length > 1) {
             startTransition(async () => {
                 const data = await searchFoods(term);
-                setResults(data.length > 0 ? data : MOCK_RESULTS.filter(r => r.name.toLowerCase().includes(term.toLowerCase())));
+                setResults(data);
             });
         } else {
             setResults([]);
