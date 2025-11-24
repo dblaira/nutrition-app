@@ -65,11 +65,31 @@ export default async function Home() {
 
   // Calculate Totals
   let consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-  const recentActivity: any[] = [];
+  const recentActivity: { id: string; name: string; calories: number; meal: string }[] = [];
 
-  meals?.forEach((meal) => {
-    meal.meal_entries.forEach((entry: any) => {
+  interface MealEntry {
+    id: string;
+    quantity: number;
+    foods: {
+      name: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+    } | null; // foods can be null if joined incorrectly, though here it shouldn't be
+  }
+
+  interface Meal {
+    id: string;
+    name: string;
+    meal_entries: MealEntry[];
+  }
+
+  (meals as unknown as Meal[])?.forEach((meal) => {
+    meal.meal_entries.forEach((entry) => {
       const food = entry.foods;
+      if (!food) return;
+
       const multiplier = entry.quantity;
 
       consumed.calories += food.calories * multiplier;
