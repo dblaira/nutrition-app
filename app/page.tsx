@@ -60,8 +60,7 @@ export default async function Home() {
     .eq("user_id", user.id)
     .eq("date", today);
 
-  console.log("DEBUG: Date used:", today);
-  console.log("DEBUG: Fetched meals:", JSON.stringify(meals, null, 2));
+
 
   // Calculate Totals
   let consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
