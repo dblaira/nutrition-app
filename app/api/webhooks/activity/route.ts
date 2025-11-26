@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
 
+export async function GET() {
+    return NextResponse.json({ status: "online", message: "Activity Sync API is ready" });
+}
+
 export async function POST(request: NextRequest) {
     // 1. Security Check
     const authHeader = request.headers.get("authorization");
