@@ -45,6 +45,44 @@ When providing feedback or making suggestions, AI agents should ask:
 
 ---
 
+## Workflow Guidelines
+
+### Approval Checkpoints
+- After completing a major feature or significant architectural change, pause and confirm before proceeding
+- Present a summary of what was done and what's next
+- Don't chain multiple large changes without user acknowledgment
+
+### Minimalist Implementation
+- Do only what's explicitly requested—no unrequested features or "improvements"
+- Prefer simple, working solutions over clever abstractions
+- If something can be done in fewer lines without sacrificing clarity, do it
+- Avoid premature optimization; let real usage patterns inform performance work
+
+---
+
+## Uncertainty Protocol
+
+When facing ambiguity or missing information:
+
+1. **Ask rather than guess** - If requirements are unclear, ask clarifying questions before implementing
+2. **Surface missing dependencies** - Explicitly note when required data, APIs, or context is unavailable
+3. **State assumptions** - When making judgment calls, clearly articulate the assumption being made
+4. **Propose alternatives** - When multiple valid approaches exist, present options with trade-offs
+
+---
+
+## Security and Privacy
+
+This app handles personal health and nutrition data. Follow these guidelines:
+
+- **Never expose credentials** - No API keys, secrets, or passwords in code or logs
+- **Sanitize user inputs** - Validate and sanitize all data entering the system
+- **Respect RLS policies** - Follow the Row Level Security patterns established in `supabase/schema.sql`
+- **Minimize data exposure** - Only query and display data the user needs to see
+- **Health data sensitivity** - Treat nutrition and supplement data as sensitive personal information
+
+---
+
 ## Technical Context
 
 - **Stack**: Next.js 14 (App Router), Supabase (Auth + Postgres), Tailwind CSS
