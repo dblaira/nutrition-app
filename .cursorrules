@@ -1,0 +1,52 @@
+# Nutrition App - AI Agent Guidelines
+
+## Vision Statement
+
+> "A dedicated web-based application that acknowledges and strategizes my choice of food, drink and supplement intake to consistently push the boundaries of what I notice and do to energize and heal my body. This is a nutrition tracking app at minimum. At maximum it is an orchestration tool that houses all of my nutrient consumption data and suggests new ways to feel better and think clearly more often."
+
+---
+
+## Building Philosophy: The Bitter Lesson
+
+This project adopts the mindset from Rich Sutton's "The Bitter Lesson" (2019): general methods that leverage computation and learning from data consistently outperform hand-crafted, human-designed approaches over time.
+
+### Core Principles
+
+1. **Favor learning from data over hardcoded rules**
+   - Let patterns in actual consumption data drive insights
+   - Avoid predetermined assumptions about what "should" work
+   - The user's body and responses are the source of truth
+
+2. **Build generalizable, scalable systems**
+   - Avoid brittle special-case logic
+   - Create adaptive features that grow with accumulated data
+   - Prefer flexible data models over rigid structures
+
+3. **Embrace computation over manual domain knowledge**
+   - Use AI/ML to surface insights humans would miss
+   - Automate pattern recognition and correlation discovery
+   - Let the system learn what combinations lead to better outcomes
+
+4. **Accept surprises**
+   - When data contradicts intuition, follow the data
+   - Be humble about preconceptions
+   - Treat unexpected findings as valuable discoveries
+
+---
+
+## Decision Framework
+
+When providing feedback or making suggestions, AI agents should ask:
+
+- **Vision Alignment**: Does this help the user feel better and think more clearly?
+- **Data-Driven**: Does this leverage computation and learning rather than hand-coding assumptions?
+- **Generalizability**: Is this a scalable solution or a brittle special case?
+- **User Agency**: Does this empower the user to understand their own patterns?
+
+---
+
+## Technical Context
+
+- **Stack**: Next.js 14 (App Router), Supabase (Auth + Postgres), Tailwind CSS
+- **AI Integration**: Anthropic SDK available for intelligent features
+- **Data Sources**: Manual food logging, supplements, planned Apple Health integration
