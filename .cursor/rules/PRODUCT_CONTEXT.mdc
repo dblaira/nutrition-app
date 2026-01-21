@@ -1,0 +1,186 @@
+# Nutrition App - Product Context
+
+## Strategic Position
+
+This app is one capture surface in a larger product suite called **Understood**.
+
+### The Suite Architecture
+
+**Core Insight:** The suite isn't 4 apps. It's 4 capture surfaces + 1 inference layer.
+
+The apps are windows for frictionless input. The product worth paying for is the AI that watches all streams and surfaces what mattered.
+
+### Current Products
+- **Adam Daily** — Personal news/journaling with AI-assisted clarity
+- **Nutrition Tracker** — Calories, macros, supplements (this app)
+
+### Future Products
+1. Financial Patterns — Spending as self-knowledge
+2. Learning Capture — Automated importance detection
+3. Relationship Pulse — Low-friction check-ins
+4. Energy/Recovery Tracking — Sleep, supplements, correlations
+
+### The Connecting Thread
+
+One customer, many windows. The brand serves the person, not the domain. Every capture surface should be compatible with eventual cross-domain synthesis.
+
+---
+
+## Exit Potential
+
+This app is designed for:
+1. **Personal use first** — Solve a real problem for the builder
+2. **Commercial viability second** — If AI integration delivers, this becomes sellable
+
+### Build Implications
+- Clean separation of concerns
+- No hardcoded personal data
+- Architecture that supports multi-tenant future
+- Quality bar that would satisfy paying customers
+
+---
+
+## Target Customer
+
+### The Variable Composition Approach
+
+The target customer holds high standards for how they interpret their own experience. They don't accept surface readings.
+
+They examine problems and solutions at different focal lengths:
+- **Zooming tight** to isolate a single variable
+- **Panning wide** to see where details sit on the larger landscape
+- **Moving between perspectives** to connect what seems random into what's actually patterned
+
+### Why Mass-Market Tools Fail Them
+
+| Tool | Fixed Focal Length | The Limitation |
+|------|-------------------|----------------|
+| MyFitnessPal | Daily macro snapshot | Can't ask "What's my 30-day protein trend?" |
+| Apple Notes | Unstructured dump | No synthesis, no pattern recognition |
+| Spreadsheets | Whatever you build | Requires swimming upstream to analyze |
+
+These tools assume one focal length. The Variable Composition customer needs tools that match their interpretive range.
+
+### Customer Characteristics
+
+- **Numerate but not reductive** — Appreciates hard numbers but recognizes some things resist quantification. Wants precision *and* space for the unquantifiable.
+
+- **Graduates of mass-market tools** — MyFitnessPal worked when they were beginners. Now they're asking questions the app can't answer.
+
+- **Clarity-seekers** — Believes that articulating something well changes your relationship to it. Logging isn't just recording—it's thinking.
+
+- **Skeptical of their own perceptions** — Knows that anticipatory anxiety lies, feelings aren't facts, the mind generates stories that don't match reality. Wants tools that help see around blind spots.
+
+- **Whole-life optimizers** — Refuses to optimize one dimension at the expense of others. Doesn't want to be crushing it professionally but dead inside.
+
+### The Deeper Drive
+
+The customer is haunted by the sense that there's a version of themselves leaving capability on the table every day.
+
+But in moments when they *don't* leave it on the table—when the omelette folds perfectly, when they actually hear a friend, when a presentation lands fully—wonder and gratitude wash over them.
+
+**Every product in this suite fights the same enemy: potential that slips through the cracks of an unexamined day.**
+
+---
+
+## Brand Philosophy
+
+### The Positive Taboo
+
+| Outsider Perception | User Reality |
+|---------------------|--------------|
+| "You're obsessively tracking everything" | Never wondering, never craving, always informed |
+| "That seems like a lot of effort" | Less effort than the nagging uncertainty of not knowing |
+| "You're being too rigid about food" | Freedom through awareness, not restriction |
+
+The perceived effort creates a story worth telling. The actual experience creates calm.
+
+### Core Promise
+
+**You.Know.You**
+
+### Mission
+
+Tools that relieve the tragedy of an unlived life—potential that slips through the cracks of an unexamined day.
+
+---
+
+## Design Philosophy
+
+### Core Principles
+
+1. **Auto-generated synthesis** — The user logs; the system notices patterns on their behalf. No requirement to swim upstream.
+
+2. **Glanceable by default, expandable when curiosity strikes** — Quick-scan surfaces with progressive depth.
+
+3. **Witnessed, not instructed** — The relationship is thinking partner, not authority. Help them uncover what's already there.
+
+4. **Speed is the juice** — If it slows them down, they won't use it. Friction is failure.
+
+5. **Precision and ambiguity, honored equally** — Hard numbers where they matter. Space for the unquantifiable where it matters.
+
+### Key UX Implications
+
+- Logging must be faster than the impulse to skip it
+- Insights surface automatically—never require the user to go looking
+- Feedback loops should be consumable in seconds but expandable for deeper attention
+- The tool should feel like a smart friend who paid attention when you weren't
+
+---
+
+## Feature Decision Filters
+
+### When evaluating a feature idea:
+
+1. **Does this support Variable Composition?**
+   - Can the user zoom tight on this data?
+   - Can they pan wide to see patterns?
+   - Is movement between views fluid?
+
+2. **Does this reduce friction or add it?**
+   - Logging friction kills usage
+   - Analysis friction is acceptable if insights surface automatically
+
+3. **Does this scale with better models?**
+   - Prefer approaches that improve as AI improves
+   - Avoid hand-crafted logic that plateaus
+
+4. **Does this serve the suite or just this app?**
+   - Data structures should be compatible with cross-domain synthesis
+   - Avoid decisions that lock this app into isolation
+
+---
+
+## Competitive Positioning
+
+### What This Is Not
+- Not a calorie-counting app for weight loss beginners
+- Not a rigid meal-planning system
+- Not a fitness bro macro tracker
+
+### What This Is
+- A thinking tool for someone who's already past the basics
+- A pattern-recognition layer for nutritional self-knowledge
+- One window in a larger system of personal synthesis
+
+### The Gap We Fill
+
+The person who's been using MyFitnessPal for two years and feels *constrained* by it. They have questions the app can't answer. They've outgrown the container.
+
+We're the tool for people who graduated.
+
+---
+
+## Key Phrases
+
+> "Measurement creates leverage—the ability to see what's actually happening beneath the noise of daily experience."
+
+> "Articulating something well changes your relationship to it. Logging isn't just recording—it's thinking."
+
+> "A tool that watches while you live."
+
+> "You're witnessed, not surveilled."
+
+> "Importance isn't declared—it's revealed."
+
+> "The tragedy of the unlived life: potential that slips through the cracks of an unexamined day."

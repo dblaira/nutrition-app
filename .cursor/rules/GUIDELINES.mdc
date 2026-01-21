@@ -1,0 +1,127 @@
+# Nutrition App - Guidelines
+
+## Vision Statement
+
+> "A dedicated web-based application that acknowledges and strategizes my choice of food, drink and supplement intake to consistently push the boundaries of what I notice and do to energize and heal my body. This is a nutrition tracking app at minimum. At maximum it is an orchestration tool that houses all of my nutrient consumption data and suggests new ways to feel better and think clearly more often."
+
+---
+
+## Building Philosophy: The Bitter Lesson
+
+This project adopts the mindset from Rich Sutton's "The Bitter Lesson" (2019): general methods that leverage computation and learning from data consistently outperform hand-crafted, human-designed approaches over time.
+
+### Core Principles
+
+1. **Favor learning from data over hardcoded rules**
+   - Let patterns in actual consumption data drive insights
+   - Avoid predetermined assumptions about what "should" work
+   - The user's body and responses are the source of truth
+
+2. **Build generalizable, scalable systems**
+   - Avoid brittle special-case logic
+   - Create adaptive features that grow with accumulated data
+   - Prefer flexible data models over rigid structures
+
+3. **Embrace computation over manual domain knowledge**
+   - Use AI/ML to surface insights humans would miss
+   - Automate pattern recognition and correlation discovery
+   - Let the system learn what combinations lead to better outcomes
+
+4. **Accept surprises**
+   - When data contradicts intuition, follow the data
+   - Be humble about preconceptions
+   - Treat unexpected findings as valuable discoveries
+
+---
+
+## Decision Framework
+
+### Primary Filter: Business Priorities (Strict Order)
+
+When evaluating features or approaches, apply in order:
+
+1. **Leverage** — Does this amplify the builder's strongest traits (pattern recognition, strategic thinking, eye for excellence) into differentiated customer value?
+
+2. **Automation** — How much time, energy, or attention does this save the user per transaction?
+
+3. **Lift** — Does this make users meaningfully better off immediately (not just accumulate data for future analysis)?
+
+**Rule:** If Priority #1 does not decide the outcome, the priorities are not ranked clearly enough. Reframe the question until Leverage decides.
+
+### Secondary Filters
+
+When providing feedback or making suggestions, also ask:
+
+- **Vision Alignment**: Does this help the user feel better and think more clearly?
+- **Data-Driven**: Does this leverage computation and learning rather than hand-coding assumptions?
+- **Generalizability**: Is this a scalable solution or a brittle special case?
+- **User Agency**: Does this empower the user to understand their own patterns?
+- **Model Scaling**: Does this get better with improved AI models, or does it plateau?
+
+---
+
+## Variable Composition Principle
+
+Every feature should support multiple focal lengths:
+
+- **Tight**: "What happened today with this one thing?"
+- **Wide**: "Where does this sit in the 30-day pattern?"
+- **Movement**: Easy transition between views without losing context
+
+The user zooms and pans to connect details. The tool must support this interpretive range.
+
+---
+
+## Workflow Guidelines
+
+### Approval Checkpoints
+- After completing a major feature or significant architectural change, pause and confirm before proceeding
+- Present a summary of what was done and what's next
+- Don't chain multiple large changes without user acknowledgment
+
+### Minimalist Implementation
+- Do only what's explicitly requested—no unrequested features or "improvements"
+- Prefer simple, working solutions over clever abstractions
+- If something can be done in fewer lines without sacrificing clarity, do it
+- Avoid premature optimization; let real usage patterns inform performance work
+
+### Speed Over Perfection (Then Iterate)
+- Ship working features fast
+- Beauty matters, but don't polish before validating
+- Friction in the build process kills momentum just like friction in the UX
+
+---
+
+## Uncertainty Protocol
+
+When facing ambiguity or missing information:
+
+1. **Ask rather than guess** — If requirements are unclear, ask clarifying questions before implementing
+2. **Surface missing dependencies** — Explicitly note when required data, APIs, or context is unavailable
+3. **State assumptions** — When making judgment calls, clearly articulate the assumption being made
+4. **Propose alternatives** — When multiple valid approaches exist, present options with trade-offs
+5. **Make a recommendation** — Don't just list options; state which you'd choose and why
+
+---
+
+## Security and Privacy
+
+This app handles personal health and nutrition data:
+
+- **Never expose credentials** — No API keys, secrets, or passwords in code or logs
+- **Sanitize user inputs** — Validate and sanitize all data entering the system
+- **Minimize data exposure** — Only query and display data the user needs to see
+- **Health data sensitivity** — Treat nutrition and supplement data as sensitive personal information
+- **Exit-ready architecture** — Build for eventual commercial use; no hardcoded personal data
+
+---
+
+## What "Done" Looks Like
+
+A feature is complete when:
+
+1. It works for the primary use case
+2. Error states are handled gracefully (not silently)
+3. The UI matches the quality bar (Taste matters)
+4. It supports the Variable Composition principle where relevant
+5. It doesn't create technical debt that blocks future features

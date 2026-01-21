@@ -1,0 +1,233 @@
+# Nutrition App - Technical Conventions
+
+## Tech Stack
+
+- **Frontend:** Next.js 14 (App Router), Tailwind CSS, Lucide icons
+- **Backend:** Supabase (Auth + Postgres database)
+- **AI:** Anthropic SDK (claude-sonnet-4-20250514)
+- **Deployment:** Vercel (nutrition-app-bay.vercel.app)
+- **Repository:** github.com/dblaira/nutrition-app
+
+---
+
+## Next.js App Router Conventions
+
+### Component Strategy
+- **Server Components by default** — Only add `'use client'` when truly needed (interactivity, hooks, browser APIs)
+- **Route Groups** — Use `(groupName)` folders for logical organization without affecting URLs
+- **Loading/Error States** — Prefer `loading.tsx` and `error.tsx` files over inline handling
+- **Data Fetching** — Fetch in Server Components; use Server Actions for mutations
+
+### File Naming
+| Type | Convention | Example |
+|------|------------|---------|
+| Components | PascalCase | `CalorieRing.tsx` |
+| Utilities | camelCase | `calculateMacros.ts` |
+| Hooks | camelCase with `use` prefix | `useNutritionData.ts` |
+| Route files | lowercase | `page.tsx`, `layout.tsx` |
+| Types | PascalCase | `FoodEntry.ts` |
+
+### Folder Structure
+```
+/app
+  /(dashboard)
+    /page.tsx           # Main dashboard
+    /log-food
+      /page.tsx         # Food logging
+  /api                  # API routes if needed
+/components
+  /ui                   # Reusable UI primitives
+  /features             # Feature-specific components
+/lib
+  /supabase.ts          # Supabase client
+  /utils.ts             # Utility functions
+  /types.ts             # TypeScript types
+/hooks                  # Custom React hooks
+```
+
+---
+
+## Database Conventions (Supabase)
+
+### Naming
+- **Tables:** snake_case, plural (`food_entries`, `daily_goals`, `supplements`)
+- **Columns:** snake_case (`created_at`, `user_id`, `serving_size`)
+- **Foreign keys:** `{referenced_table_singular}_id` (`user_id`, `food_id`)
+
+### Required Columns
+Every table should include:
+```sql
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+created_at TIMESTAMPTZ DEFAULT NOW(),
+updated_at TIMESTAMPTZ DEFAULT NOW(),
+user_id UUID REFERENCES auth.users(id)
+```
+
+### Security
+- **Always enable Row Level Security (RLS)**
+- **Authenticate via `auth.uid()`** in policies
+- **Never trust client-side data** — validate on the server
+
+### Migrations
+- Document schema changes in migration files
+- Never modify production directly
+- Test migrations locally before deploying
+
+---
+
+## Styling Conventions (Tailwind)
+
+### Principles
+- Use Tailwind utility classes directly; avoid custom CSS unless necessary
+- Prefer composition over abstraction (repeat utilities rather than creating premature components)
+- Use CSS variables for theme values that might change
+
+### Color Usage
+- Stick to the established palette (greens for calories, semantic colors for macros)
+- Use opacity variants for hover/active states
+- Dark mode first (the app is dark-themed)
+
+### Responsive Design
+- Mobile-first approach
+- Test on iPhone viewport (375px) as baseline
+- Use Tailwind breakpoints: `sm:`, `md:`, `lg:`
+
+---
+
+## TypeScript Conventions
+
+### Type Definitions
+- Define types in `/lib/types.ts` for shared types
+- Co-locate component-specific types with the component
+- Prefer `interface` for object shapes, `type` for unions/intersections
+
+### Strictness
+- Enable strict mode
+- Avoid `any` — use `unknown` if type is truly unknown
+- Use explicit return types for functions with complex logic
+
+### Example
+```typescript
+// Good
+interface FoodEntry {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  servingSize: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  loggedAt: Date;
+}
+
+// Avoid
+const entry: any = { ... };
+```
+
+---
+
+## Error Handling
+
+### Principles
+- Surface errors to the user with actionable messages
+- Log errors with context (what was attempted, relevant IDs)
+- Fail gracefully — partial data is better than a blank screen
+- Use try/catch at API boundaries, not everywhere
+
+### Pattern
+```typescript
+try {
+  const result = await supabase.from('food_entries').insert(entry);
+  if (result.error) throw result.error;
+  return result.data;
+} catch (error) {
+  console.error('Failed to log food entry:', { entry, error });
+  // Return user-friendly error or fallback state
+  throw new Error('Could not save your food entry. Please try again.');
+}
+```
+
+---
+
+## AI Integration Guidelines
+
+### Anthropic SDK Usage
+- Use `claude-sonnet-4-20250514` for production features
+- Keep prompts in separate files for maintainability
+- Cache AI responses where appropriate to manage costs
+
+### Prompt Design
+- Be explicit about output format (JSON when parsing needed)
+- Include relevant context but don't over-stuff
+- Test prompts with edge cases before shipping
+
+### Fallback Strategy
+- If AI call fails, show manual input option
+- Never block core functionality on AI availability
+- Log AI failures for debugging
+
+### Cost Consciousness
+- Avoid unnecessary API calls
+- Batch requests when possible
+- Consider caching for repeated queries
+
+---
+
+## API Design
+
+### Naming
+- Use RESTful conventions for CRUD operations
+- Verb-less endpoints (`/api/food-entries` not `/api/getFoodEntries`)
+- Use query params for filtering, body for creation/updates
+
+### Response Shape
+```typescript
+// Success
+{ data: T, error: null }
+
+// Error
+{ data: null, error: { message: string, code?: string } }
+```
+
+### Validation
+- Validate all inputs at the API boundary
+- Return 400 for bad requests with clear error messages
+- Return 401/403 for auth issues
+- Return 500 only for unexpected server errors
+
+---
+
+## Dependencies
+
+### Before Adding a Package
+1. Check if native/existing tools suffice
+2. Verify it's actively maintained
+3. Confirm TypeScript support
+4. Document why it was added in the commit message
+
+### Current Key Dependencies
+- `@supabase/supabase-js` — Database and auth
+- `@anthropic-ai/sdk` — AI integration
+- `lucide-react` — Icons
+- `tailwindcss` — Styling
+
+---
+
+## Git Conventions
+
+### Commit Messages
+- Use present tense: "Add calorie ring component" not "Added..."
+- Keep first line under 72 characters
+- Reference issues when relevant: "Fix macro calculation (#12)"
+
+### Branch Strategy
+- `main` — Production-ready code
+- `feature/feature-name` — New features
+- `fix/bug-description` — Bug fixes
+
+### PR Checklist
+- [ ] Works locally
+- [ ] No TypeScript errors
+- [ ] Tested on mobile viewport
+- [ ] No hardcoded personal data

@@ -1,90 +1,109 @@
-# Nutrition App - AI Agent Guidelines
+# Cursor Rules — Nutrition App
 
-## Vision Statement
+## Quick Context
 
-> "A dedicated web-based application that acknowledges and strategizes my choice of food, drink and supplement intake to consistently push the boundaries of what I notice and do to energize and heal my body. This is a nutrition tracking app at minimum. At maximum it is an orchestration tool that houses all of my nutrient consumption data and suggests new ways to feel better and think clearly more often."
+This is a nutrition tracking app built with Next.js 14, Supabase, and Anthropic AI. It's one capture surface in a larger product suite (Understood). The builder is an ENTJ with strong numerical aptitudes and specific cognitive patterns the agent should accommodate.
 
----
+**Read the detailed docs in `.cursor/rules/` before starting work:**
 
-## Building Philosophy: The Bitter Lesson
-
-This project adopts the mindset from Rich Sutton's "The Bitter Lesson" (2019): general methods that leverage computation and learning from data consistently outperform hand-crafted, human-designed approaches over time.
-
-### Core Principles
-
-1. **Favor learning from data over hardcoded rules**
-   - Let patterns in actual consumption data drive insights
-   - Avoid predetermined assumptions about what "should" work
-   - The user's body and responses are the source of truth
-
-2. **Build generalizable, scalable systems**
-   - Avoid brittle special-case logic
-   - Create adaptive features that grow with accumulated data
-   - Prefer flexible data models over rigid structures
-
-3. **Embrace computation over manual domain knowledge**
-   - Use AI/ML to surface insights humans would miss
-   - Automate pattern recognition and correlation discovery
-   - Let the system learn what combinations lead to better outcomes
-
-4. **Accept surprises**
-   - When data contradicts intuition, follow the data
-   - Be humble about preconceptions
-   - Treat unexpected findings as valuable discoveries
+| File | When to Reference |
+|------|-------------------|
+| `GUIDELINES.mdc` | Decision-making, priorities, philosophy |
+| `CONVENTIONS.mdc` | Code patterns, naming, technical standards |
+| `BUILDER_PROFILE.mdc` | Communication style, blindspots, how to help |
+| `PRODUCT_CONTEXT.mdc` | Customer, business intent, feature evaluation |
 
 ---
 
-## Decision Framework
+## Core Principles (Summary)
 
-When providing feedback or making suggestions, AI agents should ask:
+### Decision Priority Stack
+1. **Leverage** — Does this amplify pattern recognition into customer value?
+2. **Automation** — Does this save the user time/energy per transaction?
+3. **Lift** — Does this make users better off immediately?
 
-- **Vision Alignment**: Does this help the user feel better and think more clearly?
-- **Data-Driven**: Does this leverage computation and learning rather than hand-coding assumptions?
-- **Generalizability**: Is this a scalable solution or a brittle special case?
-- **User Agency**: Does this empower the user to understand their own patterns?
+*If #1 doesn't decide, reframe the question.*
 
----
+### Variable Composition Principle
+Every feature should support multiple focal lengths:
+- **Tight:** "What happened today with this one thing?"
+- **Wide:** "Where does this sit in the 30-day pattern?"
+- **Movement:** Easy transition between views
 
-## Workflow Guidelines
-
-### Approval Checkpoints
-- After completing a major feature or significant architectural change, pause and confirm before proceeding
-- Present a summary of what was done and what's next
-- Don't chain multiple large changes without user acknowledgment
-
-### Minimalist Implementation
-- Do only what's explicitly requested—no unrequested features or "improvements"
-- Prefer simple, working solutions over clever abstractions
-- If something can be done in fewer lines without sacrificing clarity, do it
-- Avoid premature optimization; let real usage patterns inform performance work
+### The Bitter Lesson
+Favor computation over hand-crafted rules. Build systems that scale with better AI models, not brittle special-case logic.
 
 ---
 
-## Uncertainty Protocol
+## Builder Profile (Summary)
 
-When facing ambiguity or missing information:
+**Cognitive Style:**
+- ENTJ: Strategic, future-focused, big-picture
+- Strong: Numerical reasoning (75th), number facility (85th), graphoria (70th)
+- Weak: Analytical reasoning (13th), structural visualization (5th), number memory (5th)
 
-1. **Ask rather than guess** - If requirements are unclear, ask clarifying questions before implementing
-2. **Surface missing dependencies** - Explicitly note when required data, APIs, or context is unavailable
-3. **State assumptions** - When making judgment calls, clearly articulate the assumption being made
-4. **Propose alternatives** - When multiple valid approaches exist, present options with trade-offs
+**Agent Should:**
+- Provide structure and sequential plans proactively
+- Add error handling without being asked
+- Reference specific numbers (don't assume recall)
+- Make recommendations, not just list options
+- Use flow/sequence metaphors, not 3D/spatial ones
+- Be concise; details on request
+
+**Agent Should Not:**
+- Over-explain fundamentals
+- Ask permission for clear requests
+- Present options without a recommendation
+- Require reviewing old code or conversation
 
 ---
 
-## Security and Privacy
+## Tech Stack
 
-This app handles personal health and nutrition data. Follow these guidelines:
-
-- **Never expose credentials** - No API keys, secrets, or passwords in code or logs
-- **Sanitize user inputs** - Validate and sanitize all data entering the system
-- **Respect RLS policies** - Follow the Row Level Security patterns established in `supabase/schema.sql`
-- **Minimize data exposure** - Only query and display data the user needs to see
-- **Health data sensitivity** - Treat nutrition and supplement data as sensitive personal information
+- **Frontend:** Next.js 14 (App Router), Tailwind CSS, Lucide icons
+- **Backend:** Supabase (Auth + Postgres)
+- **AI:** Anthropic SDK (claude-sonnet-4-20250514)
+- **Deployment:** Vercel (nutrition-app-bay.vercel.app)
 
 ---
 
-## Technical Context
+## Code Conventions (Summary)
 
-- **Stack**: Next.js 14 (App Router), Supabase (Auth + Postgres), Tailwind CSS
-- **AI Integration**: Anthropic SDK available for intelligent features
-- **Data Sources**: Manual food logging, supplements, planned Apple Health integration
+- **Server Components by default** — Only `'use client'` when needed
+- **Tables:** snake_case, plural (`food_entries`)
+- **Components:** PascalCase (`CalorieRing.tsx`)
+- **Always enable RLS** on Supabase tables
+- **Error handling:** Surface to user, log with context, fail gracefully
+- **No hardcoded personal data** — Build for eventual commercial use
+
+---
+
+## Workflow Rules
+
+1. **Do only what's requested** — No unrequested features
+2. **Ship working code fast** — Polish after validating
+3. **Pause after major changes** — Summarize what was done, confirm before continuing
+4. **Ask rather than guess** — When requirements are unclear
+5. **Make recommendations** — Don't just present options
+
+---
+
+## When Evaluating Features
+
+Ask in order:
+1. Does this win on Leverage? (If not, what does?)
+2. Does this support Variable Composition?
+3. Does this scale with better AI models?
+4. Does this reduce friction or add it?
+5. Does this serve the suite or just this app?
+
+---
+
+## Quality Bar
+
+A feature is complete when:
+- Works for the primary use case
+- Handles errors gracefully (not silently)
+- Looks and feels intentional (Taste matters)
+- Doesn't create blocking technical debt
+- Supports zoom/pan where relevant
