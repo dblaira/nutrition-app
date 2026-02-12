@@ -1,4 +1,4 @@
-import { Flame, Utensils } from "lucide-react";
+import { Dumbbell, Flame, Utensils } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -171,12 +171,18 @@ export default async function Home() {
       </section>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Link href="/log-food" className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
           <div className="h-10 w-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Utensils size={20} />
           </div>
           <span className="font-medium">Log Food</span>
+        </Link>
+        <Link href="/workouts" className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
+          <div className="h-10 w-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: "rgba(155, 27, 48, 0.2)", color: "#9b1b30" }}>
+            <Dumbbell size={20} />
+          </div>
+          <span className="font-medium">Workouts</span>
         </Link>
         <button className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
           <div className="h-10 w-10 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
