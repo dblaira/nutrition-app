@@ -1,4 +1,3 @@
-import React from "react";
 import { Dumbbell, Utensils, LogOut, Droplets } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
@@ -340,9 +339,6 @@ export default async function Home() {
 
   /* ═══════════════════════ RENDER ═══════════════════════ */
   return (
-    <React.Fragment>
-    {/* Override body bg so no dark bars show at edges */}
-    <style>{`html, body { background: ${C.sun} !important; }`}</style>
     <div
       style={{
         minHeight: "100vh",
@@ -891,6 +887,5 @@ export default async function Home() {
       </div>
       </div>
     </div>
-    </React.Fragment>
   );
 }
