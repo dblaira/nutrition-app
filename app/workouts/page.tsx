@@ -1,970 +1,625 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { ArrowLeft, ChevronDown, ChevronRight, Lightbulb, StickyNote, Trophy } from "lucide-react";
-import Link from "next/link";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface Exercise {
-  name: string;
-  sets: number;
-  reps: string;
-  tip?: string;
-}
-
-interface Section {
-  name: string;
-  note?: string;
-  exercises: Exercise[];
-}
-
-interface DayPlan {
-  label: string;
-  title: string;
-  sections: Section[];
-}
-
-interface CheckState {
-  [dayLabel: string]: {
-    sets: { [exerciseKey: string]: boolean[] };
-    notes: string;
-    collapsedSections: { [sectionName: string]: boolean };
-  };
-}
-
-// ─── Workout Data ────────────────────────────────────────────────────────────
-
-const PRE_RUN_ACTIVATION: Exercise[] = [
-  { name: "Knee to Wall Dorsiflexion Rocks", sets: 1, reps: "10 per side", tip: "Drive knee forward over toes toward wall, keep heel down" },
-  { name: "Ankle Circles", sets: 1, reps: "10 each direction per side" },
-  { name: "Eversion Isometric Hold", sets: 2, reps: "15 sec", tip: "Press outside of foot against wall, targets peroneal muscles" },
-  { name: "Short Foot Holds", sets: 2, reps: "10 sec each side", tip: "Press big toe, little toe, heel into ground, lift arch WITHOUT curling toes" },
-  { name: "Standing Hip Flexor March Hold", sets: 2, reps: "10 sec", tip: "Drive knee to hip height, keep pelvis level" },
-  { name: "Side Lying Adduction Raises", sets: 1, reps: "8 each side", tip: "Top leg crossed over, lift bottom leg up" },
-  { name: "Single Leg Balance", sets: 2, reps: "20 sec each side" },
-  { name: "Single Leg RDL Reach (bodyweight)", sets: 1, reps: "5 each side, slow" },
-];
-
-const WORKOUT_DAYS: DayPlan[] = [
-  {
-    label: "Sun",
-    title: "10mi Run, Zone 2 + Pre-Run Activation + Post-Run Recovery",
-    sections: [
-      {
-        name: "Pre-Run Activation",
-        note: "8-10 min",
-        exercises: [...PRE_RUN_ACTIVATION],
-      },
-      {
-        name: "Main Run",
-        exercises: [
-          { name: "Zone 2 Run", sets: 1, reps: "10 miles", tip: "First mile at Zone 1, then stay in Zone 2 for all 10" },
-        ],
-      },
-      {
-        name: "Post-Run Recovery",
-        exercises: [
-          { name: "Cooldown Walk", sets: 1, reps: "3-5 minutes" },
-          { name: "Foam Roll: Quads, Calves, Glutes, IT Band", sets: 1, reps: "complete" },
-          { name: "Static Stretch: Hip Flexor, Calf, Adductor", sets: 1, reps: "complete" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Mon",
-    title: "Zone 2 Bike 60min + Upper Strength A (Pull/Push)",
-    sections: [
-      {
-        name: "Zone 2 Cardio",
-        exercises: [
-          { name: "Zone 2 Bike", sets: 1, reps: "60 minutes" },
-        ],
-      },
-      {
-        name: "Complex 1 — Pull then Push",
-        note: "30 sec break between rounds",
-        exercises: [
-          { name: "Rows (your choice)", sets: 4, reps: "12" },
-          { name: "Bench Press (bar or DB)", sets: 4, reps: "12" },
-          { name: "Crunches", sets: 4, reps: "20" },
-        ],
-      },
-      {
-        name: "Complex 2 — Pull/Push",
-        note: "30 sec break between rounds",
-        exercises: [
-          { name: "Lat Pulldowns", sets: 4, reps: "10" },
-          { name: "Shoulder Press", sets: 4, reps: "10" },
-          { name: "Plank Squeeze", sets: 4, reps: "10 sec hold" },
-        ],
-      },
-      {
-        name: "Finisher",
-        exercises: [
-          { name: "Max Time Dead Hang", sets: 1, reps: "max hold" },
-          { name: "Chest Stretch", sets: 1, reps: "30-45 sec" },
-          { name: "Leg Foam Roll", sets: 1, reps: "3 minutes" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Tue",
-    title: "Lower Strength A — Main Lower Day + Correctives",
-    sections: [
-      {
-        name: "Warm-Up / Activation",
-        note: "5 min",
-        exercises: [
-          { name: "Knee to Wall Dorsiflexion Rocks", sets: 1, reps: "10 per side" },
-          { name: "Ankle Circles", sets: 1, reps: "10 each direction per side" },
-          { name: "Standing Hip Flexor March Hold", sets: 2, reps: "10 sec" },
-        ],
-      },
-      {
-        name: "Main Strength",
-        note: "Protect left lateral ankle and left hip/groin",
-        exercises: [
-          { name: "Sumo Squat (DB or Goblet)", sets: 3, reps: "12", tip: "Wide stance, toes out 30-45°, drive knees over toes, slow descent" },
-          { name: "Reverse Lunges", sets: 3, reps: "10 each side", tip: "Step back not forward, keep torso upright" },
-          { name: "Step Ups (moderate height)", sets: 3, reps: "10 each side", tip: "Drive through heel, don't push off back foot" },
-          { name: "Romanian Deadlift (DB)", sets: 3, reps: "10", tip: "Hinge at hips, soft knees, weights close to legs" },
-          { name: "Lateral Band Walks", sets: 3, reps: "15 each direction", tip: "Band around ankles, stay low in quarter squat" },
-          { name: "Hanging Knees to Chest", sets: 3, reps: "8", tip: "Control movement, no swinging" },
-        ],
-      },
-      {
-        name: "Accessories & Correctives",
-        exercises: [
-          { name: "Calf Raises (slow)", sets: 3, reps: "15", tip: "Slow up AND down, full ROM" },
-          { name: "Band Ankle Eversion", sets: 3, reps: "20 each side" },
-          { name: "Band Hip Flexion March", sets: 3, reps: "12 each side" },
-          { name: "Adductor Squeeze", sets: 2, reps: "20 sec hold" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Wed",
-    title: "Zone 2 Cardio (Bike 60min OR Run 40min) + Upper Strength B",
-    sections: [
-      {
-        name: "Cardio Option A — Bike",
-        exercises: [
-          { name: "Zone 2 Bike", sets: 1, reps: "60 minutes" },
-        ],
-      },
-      {
-        name: "Cardio Option B — Run",
-        note: "Use pre-run warmup below if running",
-        exercises: [
-          { name: "Zone 2 Run", sets: 1, reps: "40 minutes" },
-        ],
-      },
-      {
-        name: "Pre-Run Warmup (only if running)",
-        exercises: [...PRE_RUN_ACTIVATION],
-      },
-      {
-        name: "Complex 1 — Isolation",
-        note: "15 sec break between rounds",
-        exercises: [
-          { name: "Cable Tricep Extension", sets: 3, reps: "12" },
-          { name: "Dumbbell Bicep Curls", sets: 3, reps: "12" },
-          { name: "Floor Reverse Crunches", sets: 3, reps: "10", tip: "Lift hips by curling pelvis up, control lowering" },
-        ],
-      },
-      {
-        name: "Complex 2 — Unilateral Cable Work",
-        note: "15 sec break, big staggered stance",
-        exercises: [
-          { name: "Single Arm Cable Push", sets: 3, reps: "10 each side" },
-          { name: "Single Arm Cable Pull", sets: 3, reps: "10 each side" },
-        ],
-      },
-      {
-        name: "Finisher",
-        exercises: [
-          { name: "Max Time Dead Hang", sets: 1, reps: "max hold" },
-          { name: "Chest Stretch", sets: 1, reps: "30-45 sec" },
-          { name: "Leg Foam Roll", sets: 1, reps: "3 minutes" },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Thu",
-    title: "Run Skill Day — Drills + Zone 2 Run + Recovery",
-    sections: [
-      {
-        name: "Pre-Run Activation",
-        note: "8-10 min — same ankle + hip routine",
-        exercises: [...PRE_RUN_ACTIVATION],
-      },
-      {
-        name: "Skill Warm-Up Drills",
-        note: "5-6 min total, walk back between sets",
-        exercises: [
-          { name: "A Skip", sets: 2, reps: "20 meters", tip: "Easy rhythm, drive knee up with quick hop, relaxed" },
-          { name: "B Skip", sets: 2, reps: "20 meters", tip: "Smooth knee drive, DO NOT reach, leg extends naturally then pulls back under" },
-          { name: "High Knees", sets: 2, reps: "10 seconds", tip: "Quick ground contacts, NOT max height, think \"hot coals\"" },
-        ],
-      },
-      {
-        name: "Main Run",
-        exercises: [
-          { name: "Zone 2 Easy Run", sets: 1, reps: "30-40 minutes total", tip: "Keep truly easy, conversation pace" },
-        ],
-      },
-      {
-        name: "Post-Run Recovery",
-        note: "8-12 min",
-        exercises: [
-          { name: "Cooldown Walk", sets: 1, reps: "3-5 minutes" },
-          { name: "Foam Roll: Quads 45s each + Calves 45s each", sets: 1, reps: "complete" },
-          { name: "Static Holds: Hip Flexor 30-45s + Calf 30-45s", sets: 1, reps: "complete" },
-        ],
-      },
-    ],
-  },
-  { label: "Fri", title: "Coming Soon", sections: [] },
-  { label: "Sat", title: "Coming Soon", sections: [] },
-];
-
-const FULL_DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
-const STORAGE_KEY = "workouts-check-state";
-
-// ─── Resort Optimism Theme ──────────────────────────────────────────────────
-
+/* ───────────────────────── PALETTE ───────────────────────── */
 const C = {
-  goldTop: "#F2C744",
-  goldMid: "#F7DC6F",
-  sand: "#FAF0DB",
-  cream: "#FFFDF5",
-  cardWhite: "#FFFFFF",
-  cardDark: "#2C2C2C",
-  terracotta: "#D4654A",
-  ocean: "#2B7FB5",
-  gold: "#F2C744",
-  green: "#27AE60",
-  textDark: "#2C2C2C",
-  textOnDark: "#FFFDF5",
-  muted: "#8C7B6B",
-  mutedOnDark: "#c4b8a8",
+  blue: "#0047AB",
+  yellow: "#F5C518",
+  red: "#CC2936",
+  white: "#FFFFFF",
+  black: "#1A1A1A",
+  orange: "#E8751A",
+  green: "#1B8C4E",
+  teal: "#008080",
 } as const;
 
-const font = "var(--font-outfit), 'Avenir Next', 'Helvetica Neue', sans-serif";
-const cardShadow = "0 4px 24px rgba(0,0,0,0.06)";
-const cardRadius = "20px";
+/* ───────────────────────── FONTS ───────────────────────── */
+const fontFamily = `var(--font-outfit), 'Avenir Next', 'Helvetica Neue', sans-serif`;
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+/* ───────────────────────── HEIGHTS ───────────────────────── */
+const HEIGHTS = [220,270,200,250,230,280,210,260,240,290,195,310,225,245,205,265,235];
 
-function getMarathonCountdown(): number {
-  const raceDay = new Date("2026-05-03T00:00:00");
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.max(0, Math.ceil((raceDay.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-}
+/* ───────────────────────── STORAGE ───────────────────────── */
+const STORAGE_KEY = "optimism-pop-v1";
 
-function getTodayDayIndex(): number {
-  return new Date().getDay();
-}
+type CheckState = Record<string, boolean[]>;
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
-function exerciseKey(sectionIdx: number, exerciseIdx: number): string {
-  return `${sectionIdx}-${exerciseIdx}`;
-}
-
-function getInitialState(): CheckState {
+function loadChecks(): CheckState {
   if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+function saveChecks(c: CheckState) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
   } catch {}
-  return {};
 }
 
-function getDayStats(day: DayPlan, dayState?: CheckState[string]) {
-  let total = 0;
-  let checked = 0;
-  day.sections.forEach((section, si) => {
-    section.exercises.forEach((ex, ei) => {
-      total += ex.sets;
-      if (dayState?.sets) {
-        const key = exerciseKey(si, ei);
-        const arr = dayState.sets[key];
-        if (arr) {
-          checked += arr.filter(Boolean).length;
-        }
-      }
-    });
-  });
-  return { total, checked, pct: total === 0 ? 0 : Math.round((checked / total) * 100) };
+/* ───────────────────────── EXERCISE DATA ───────────────────────── */
+interface Exercise {
+  id: string;
+  name: string;
+  section: string;
+  sectionLabel: string;
+  sets: number;
+  detail: string;
+  tip?: string;
 }
 
-function getSectionStats(section: Section, sectionIdx: number, dayState?: CheckState[string]) {
-  let total = 0;
-  let checked = 0;
-  section.exercises.forEach((ex, ei) => {
-    total += ex.sets;
-    if (dayState?.sets) {
-      const key = exerciseKey(sectionIdx, ei);
-      const arr = dayState.sets[key];
-      if (arr) {
-        checked += arr.filter(Boolean).length;
-      }
-    }
-  });
-  return { total, checked };
+const EXERCISES: Exercise[] = [
+  { id: "wall-dorsiflexion", name: "Wall Dorsiflexion", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "10 per side", tip: "Drive knee over toes toward wall, heel stays down" },
+  { id: "ankle-circles", name: "Ankle Circles", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "10 each direction" },
+  { id: "eversion-hold", name: "Eversion Hold", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "15 sec hold", tip: "Press outside of foot against wall \u2014 targets peroneals" },
+  { id: "short-foot", name: "Short Foot", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "10 sec each side", tip: "Big toe, little toe, heel down. Lift arch WITHOUT curling toes" },
+  { id: "hip-flexor-march", name: "Hip Flexor March", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "10 sec hold", tip: "Knee to hip height, pelvis level" },
+  { id: "adduction-raises", name: "Adduction Raises", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "8 each side", tip: "Top leg crossed over, lift bottom leg" },
+  { id: "sl-balance", name: "SL Balance", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "20 sec each" },
+  { id: "sl-rdl-reach", name: "SL RDL Reach", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "5 each, slow" },
+  { id: "a-skip", name: "A Skip", section: "drills", sectionLabel: "Drills", sets: 2, detail: "2 \u00d7 20m", tip: "Easy rhythm. Knee up, quick hop. Relaxed" },
+  { id: "b-skip", name: "B Skip", section: "drills", sectionLabel: "Drills", sets: 2, detail: "2 \u00d7 20m", tip: "Smooth knee drive. DON\u2019T reach. Pulls back under" },
+  { id: "high-knees", name: "High Knees", section: "drills", sectionLabel: "Drills", sets: 2, detail: "2 \u00d7 10 sec", tip: 'Quick contacts, NOT max height. "Hot coals"' },
+  { id: "easy-run", name: "Easy Run", section: "run", sectionLabel: "Run", sets: 1, detail: "Zone 2 \u00b7 30\u201340 min", tip: "Conversation pace. If you can\u2019t talk, slow down" },
+  { id: "cooldown-walk", name: "Cooldown Walk", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "3\u20135 min" },
+  { id: "foam-roll-quads", name: "Foam Roll Quads", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "45s each" },
+  { id: "foam-roll-calves", name: "Foam Roll Calves", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "45s each" },
+  { id: "hip-flexor-stretch", name: "Hip Flexor Stretch", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "30\u201345s hold" },
+  { id: "calf-stretch", name: "Calf Stretch", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "30\u201345s hold" },
+];
+
+const SECTIONS = ["pre-run", "drills", "run", "recovery"];
+const SECTION_NAMES: Record<string, string> = { "pre-run": "Activation", drills: "Drills", run: "Run", recovery: "Recovery" };
+
+/* ───────────────────────── SVG ART ───────────────────────── */
+function ExerciseSVG({ id }: { id: string }) {
+  const s = `0 0 200 200`;
+  const common = { xmlns: "http://www.w3.org/2000/svg", viewBox: s, width: "100%", height: "100%", preserveAspectRatio: "xMidYMid slice" as const };
+
+  switch (id) {
+    case "wall-dorsiflexion":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.yellow} />
+          <rect x="100" y="0" width="100" height="200" fill={C.black} />
+          <rect x="100" y="150" width="100" height="50" fill={C.white} />
+          <polygon points="60,180 90,140 110,160 80,200" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <path d="M 70 160 Q 50 130 80 120" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <line x1="100" y1="0" x2="100" y2="200" stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "ankle-circles":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <circle cx="100" cy="100" r="80" fill="none" stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="80" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="58" fill={C.blue} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="36" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="16" fill={C.white} stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "eversion-hold":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.orange} />
+          <rect x="160" y="0" width="40" height="200" fill={C.black} />
+          <circle cx="100" cy="100" r="55" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="35" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="16" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <line x1="10" y1="80" x2="45" y2="80" stroke={C.black} strokeWidth="4" />
+          <line x1="10" y1="100" x2="50" y2="100" stroke={C.black} strokeWidth="4" />
+          <line x1="10" y1="120" x2="45" y2="120" stroke={C.black} strokeWidth="4" />
+        </svg>
+      );
+    case "short-foot":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.yellow} />
+          <rect x="0" y="160" width="200" height="40" fill={C.white} />
+          <line x1="0" y1="160" x2="200" y2="160" stroke={C.black} strokeWidth="3" />
+          <ellipse cx="100" cy="140" rx="60" ry="20" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <circle cx="70" cy="160" r="5" fill={C.black} />
+          <circle cx="100" cy="160" r="5" fill={C.black} />
+          <circle cx="130" cy="160" r="5" fill={C.black} />
+          <line x1="100" y1="130" x2="100" y2="90" stroke={C.black} strokeWidth="4" />
+          <polygon points="92,98 100,80 108,98" fill={C.black} />
+        </svg>
+      );
+    case "hip-flexor-march":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <rect x="20" y="120" width="24" height="70" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <rect x="55" y="100" width="24" height="90" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <rect x="90" y="80" width="24" height="110" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <rect x="125" y="60" width="24" height="130" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <rect x="160" y="40" width="24" height="150" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="32" cy="115" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="67" cy="95" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="102" cy="75" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="137" cy="55" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="172" cy="35" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "adduction-raises":
+      return (
+        <svg {...common}>
+          <rect width="200" height="80" fill={C.white} />
+          <rect x="0" y="80" width="200" height="120" fill={C.blue} />
+          <line x1="0" y1="80" x2="200" y2="80" stroke={C.black} strokeWidth="3" />
+          <polygon points="10,120 50,80 90,120 70,160 30,160" fill={C.teal} stroke={C.black} strokeWidth="3" />
+          <circle cx="160" cy="50" r="28" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "sl-balance":
+      return (
+        <svg {...common}>
+          <rect width="200" height="100" fill={C.white} />
+          <rect x="0" y="100" width="200" height="100" fill={C.yellow} />
+          <line x1="0" y1="100" x2="200" y2="100" stroke={C.black} strokeWidth="5" />
+          <circle cx="100" cy="55" r="16" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <line x1="100" y1="71" x2="100" y2="130" stroke={C.black} strokeWidth="4" />
+          <line x1="100" y1="90" x2="65" y2="75" stroke={C.black} strokeWidth="3" />
+          <line x1="100" y1="90" x2="135" y2="75" stroke={C.black} strokeWidth="3" />
+          <line x1="100" y1="130" x2="100" y2="170" stroke={C.black} strokeWidth="3" />
+          <circle cx="65" cy="75" r="5" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="135" cy="75" r="5" fill={C.red} stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "sl-rdl-reach":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.yellow} />
+          <path d="M 30 180 Q 60 140 80 160 Q 100 180 120 120 Q 140 60 170 30" fill="none" stroke={C.white} strokeWidth="18" />
+          <path d="M 30 180 Q 60 140 80 160 Q 100 180 120 120 Q 140 60 170 30" fill="none" stroke={C.black} strokeWidth="4" />
+          <circle cx="120" cy="105" r="8" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="113" x2="120" y2="140" stroke={C.black} strokeWidth="3" />
+          <line x1="120" y1="125" x2="105" y2="115" stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="125" x2="135" y2="115" stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="140" x2="110" y2="160" stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="140" x2="130" y2="155" stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "a-skip":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.red} />
+          <rect x="0" y="175" width="200" height="25" fill={C.black} />
+          <path d="M 10 170 Q 30 130 50 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 50 170 Q 70 120 90 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 90 170 Q 110 110 130 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 130 170 Q 150 120 170 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 170 170 Q 190 130 200 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <circle cx="160" cy="35" r="25" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "b-skip":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.teal} />
+          <rect x="0" y="0" width="200" height="20" fill={C.black} />
+          <rect x="0" y="180" width="200" height="20" fill={C.black} />
+          <path d="M 0 100 Q 25 50 50 100 Q 75 150 100 100 Q 125 50 150 100 Q 175 150 200 100" fill="none" stroke={C.yellow} strokeWidth="7" />
+          <path d="M 0 110 Q 25 150 50 110 Q 75 70 100 110 Q 125 150 150 110 Q 175 70 200 110" fill="none" stroke={C.white} strokeWidth="4" />
+        </svg>
+      );
+    case "high-knees":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.orange} />
+          <rect x="0" y="170" width="200" height="30" fill={C.black} />
+          <line x1="0" y1="170" x2="200" y2="170" stroke={C.black} strokeWidth="3" />
+          <ellipse cx="30" cy="110" rx="14" ry="30" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="70" cy="90" rx="14" ry="35" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="110" cy="100" rx="14" ry="32" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="150" cy="85" rx="14" ry="38" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="185" cy="105" rx="14" ry="30" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <circle cx="30" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="70" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="110" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="150" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="185" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "easy-run":
+      return (
+        <svg {...common}>
+          <rect width="200" height="100" fill={C.white} />
+          <rect x="0" y="100" width="200" height="100" fill={C.blue} />
+          <line x1="0" y1="100" x2="200" y2="100" stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="60" fill={C.orange} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="40" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="20" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "cooldown-walk":
+      return (
+        <svg {...common}>
+          <rect width="200" height="120" fill={C.blue} />
+          <rect x="0" y="120" width="200" height="80" fill={C.yellow} />
+          <line x1="0" y1="120" x2="200" y2="120" stroke={C.black} strokeWidth="3" />
+          <line x1="80" y1="50" x2="80" y2="120" stroke={C.black} strokeWidth="4" />
+          <path d="M 40 50 Q 80 10 120 50" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <path d="M 40 50 Q 80 20 120 50" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <circle cx="155" cy="40" r="22" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "foam-roll-quads":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.green} />
+          <rect x="25" y="50" width="150" height="24" rx="12" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <rect x="25" y="90" width="150" height="24" rx="12" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <rect x="25" y="130" width="150" height="24" rx="12" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <line x1="80" y1="170" x2="120" y2="170" stroke={C.black} strokeWidth="5" />
+          <polygon points="92,178 100,195 108,178" fill={C.black} />
+        </svg>
+      );
+    case "foam-roll-calves":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <rect x="55" y="20" width="28" height="160" rx="14" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <rect x="117" y="20" width="28" height="160" rx="14" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <line x1="45" y1="60" x2="155" y2="60" stroke={C.yellow} strokeWidth="4" />
+          <line x1="45" y1="95" x2="155" y2="95" stroke={C.yellow} strokeWidth="4" />
+          <line x1="45" y1="130" x2="155" y2="130" stroke={C.yellow} strokeWidth="4" />
+          <line x1="45" y1="160" x2="155" y2="160" stroke={C.yellow} strokeWidth="4" />
+        </svg>
+      );
+    case "hip-flexor-stretch":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.yellow} />
+          <polygon points="100,20 30,170 170,170" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <polygon points="100,55 55,150 145,150" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <circle cx="100" cy="40" r="14" fill={C.red} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "calf-stretch":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <rect x="20" y="150" width="32" height="30" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="52" y="130" width="32" height="50" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="84" y="110" width="32" height="70" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="116" y="90" width="32" height="90" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="148" y="70" width="32" height="110" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <circle cx="165" cy="35" r="20" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <circle cx="100" cy="100" r="50" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+  }
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+/* ───────────────────────── RACE COUNTDOWN ───────────────────────── */
+function daysToRace(): number {
+  const race = new Date("2026-05-03T00:00:00");
+  const now = new Date();
+  return Math.max(0, Math.ceil((race.getTime() - now.getTime()) / 86400000));
+}
 
+/* ───────────────────────── MAIN COMPONENT ───────────────────────── */
 export default function WorkoutsPage() {
-  const [selectedDay, setSelectedDay] = useState(getTodayDayIndex);
-  const [state, setState] = useState<CheckState>(getInitialState);
-  const [expandedTips, setExpandedTips] = useState<Set<string>>(new Set());
+  const [checks, setChecks] = useState<CheckState>({});
+  const [focusIdx, setFocusIdx] = useState<number | null>(null);
+  const [showTip, setShowTip] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    setChecks(loadChecks());
+    setMounted(true);
+  }, []);
 
-  const currentDay = WORKOUT_DAYS[selectedDay];
-  const dayKey = currentDay.label;
-  const dayState = state[dayKey];
-
-  const toggleSet = useCallback((sectionIdx: number, exerciseIdx: number, setIdx: number) => {
-    setState((prev) => {
-      const dk = WORKOUT_DAYS[selectedDay].label;
-      const dayData = prev[dk] || { sets: {}, notes: "", collapsedSections: {} };
-      const key = exerciseKey(sectionIdx, exerciseIdx);
-      const exercise = WORKOUT_DAYS[selectedDay].sections[sectionIdx].exercises[exerciseIdx];
-      const current = dayData.sets[key] || Array(exercise.sets).fill(false);
-      const updated = [...current];
-      updated[setIdx] = !updated[setIdx];
-      return {
-        ...prev,
-        [dk]: {
-          ...dayData,
-          sets: { ...dayData.sets, [key]: updated },
-        },
-      };
-    });
-  }, [selectedDay]);
-
-  const toggleSection = useCallback((sectionName: string) => {
-    setState((prev) => {
-      const dk = WORKOUT_DAYS[selectedDay].label;
-      const dayData = prev[dk] || { sets: {}, notes: "", collapsedSections: {} };
-      return {
-        ...prev,
-        [dk]: {
-          ...dayData,
-          collapsedSections: {
-            ...dayData.collapsedSections,
-            [sectionName]: !dayData.collapsedSections?.[sectionName],
-          },
-        },
-      };
-    });
-  }, [selectedDay]);
-
-  const toggleTip = useCallback((key: string) => {
-    setExpandedTips((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+  const toggle = useCallback((id: string, setIdx: number) => {
+    setChecks((prev) => {
+      const arr = [...(prev[id] || [])];
+      arr[setIdx] = !arr[setIdx];
+      const next = { ...prev, [id]: arr };
+      saveChecks(next);
       return next;
     });
   }, []);
 
-  const setNotes = useCallback((value: string) => {
-    setState((prev) => {
-      const dk = WORKOUT_DAYS[selectedDay].label;
-      const dayData = prev[dk] || { sets: {}, notes: "", collapsedSections: {} };
-      return {
-        ...prev,
-        [dk]: { ...dayData, notes: value },
-      };
-    });
-  }, [selectedDay]);
+  const isSetDone = (id: string, setIdx: number) => !!(checks[id] && checks[id][setIdx]);
+  const isExDone = (ex: Exercise) => {
+    const arr = checks[ex.id];
+    if (!arr) return false;
+    for (let i = 0; i < ex.sets; i++) if (!arr[i]) return false;
+    return true;
+  };
+  const isSectionDone = (section: string) => EXERCISES.filter((e) => e.section === section).every(isExDone);
 
-  const dayStats = getDayStats(currentDay, dayState);
-  const daysRemaining = getMarathonCountdown();
-  const weeksRemaining = Math.floor(daysRemaining / 7);
-  const isComingSoon = currentDay.sections.length === 0;
+  const totalSets = EXERCISES.reduce((s, e) => s + e.sets, 0);
+  const doneSets = EXERCISES.reduce((s, e) => {
+    let c = 0;
+    for (let i = 0; i < e.sets; i++) if (isSetDone(e.id, i)) c++;
+    return s + c;
+  }, 0);
+  const progress = totalSets > 0 ? doneSets / totalSets : 0;
+  const allDone = progress >= 1;
 
-  return (
-    <div
-      style={{
-        fontFamily: font,
-        minHeight: "100vh",
-        background: `linear-gradient(180deg, ${C.goldTop} 0%, ${C.goldMid} 20%, ${C.sand} 50%, ${C.cream} 100%)`,
-      }}
-    >
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header style={{ padding: "24px 20px 0" }}>
-        <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
-          {/* Top row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <Link
-                href="/"
-                style={{
-                  color: C.textDark,
-                  width: "44px",
-                  height: "44px",
-                  borderRadius: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "background-color 0.15s",
-                  backgroundColor: "rgba(255,255,255,0.5)",
-                }}
-              >
-                <ArrowLeft size={22} />
-              </Link>
-              <div>
-                <h1 style={{ fontFamily: font, fontSize: "28px", fontWeight: 800, color: C.textDark, margin: 0, letterSpacing: "-0.02em" }}>
-                  Optimism.
-                </h1>
-                <p style={{ fontFamily: font, fontSize: "15px", color: C.muted, margin: "2px 0 0" }}>
-                  {getGreeting()}, Adam
-                </p>
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontFamily: font, fontSize: "13px", fontWeight: 700, color: C.terracotta, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                OC Marathon
-              </div>
-              <div style={{ fontFamily: font, fontSize: "36px", fontWeight: 800, color: C.textDark, lineHeight: 1, letterSpacing: "-0.02em" }}>
-                {daysRemaining}
-              </div>
-              <div style={{ fontSize: "13px", color: C.muted }}>
-                days ({weeksRemaining}w)
-              </div>
-            </div>
+  /* ── Masonry layout ── */
+  const col1: number[] = [];
+  const col2: number[] = [];
+  let h1 = 0;
+  let h2 = 0;
+  EXERCISES.forEach((_, i) => {
+    if (h1 <= h2) {
+      col1.push(i);
+      h1 += HEIGHTS[i % HEIGHTS.length] + 12;
+    } else {
+      col2.push(i);
+      h2 += HEIGHTS[i % HEIGHTS.length] + 12;
+    }
+  });
+
+  if (!mounted) {
+    return <div style={{ background: C.yellow, minHeight: "100vh" }} />;
+  }
+
+  /* ───── FOCUS MODE ───── */
+  if (focusIdx !== null) {
+    const ex = EXERCISES[focusIdx];
+    return (
+      <div style={{ position: "fixed", inset: 0, background: C.white, zIndex: 100, fontFamily, overflow: "auto" }}>
+        {/* Art area */}
+        <div style={{ position: "relative", height: "42vh", borderBottom: `4px solid ${C.black}`, overflow: "hidden" }}>
+          <ExerciseSVG id={ex.id} />
+          {/* Back button */}
+          <button
+            onClick={() => { setFocusIdx(null); setShowTip(false); }}
+            style={{
+              position: "absolute", top: 16, left: 16, width: 48, height: 48,
+              borderRadius: "50%", background: C.white, border: `3px solid ${C.black}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", fontSize: 22, fontWeight: 800, color: C.black,
+            }}
+            aria-label="Back"
+          >
+            &#8592;
+          </button>
+          {/* Section pill */}
+          <div style={{
+            position: "absolute", top: 16, right: 16,
+            background: C.black, color: C.yellow,
+            padding: "5px 14px", borderRadius: 999, fontSize: 11, fontWeight: 700,
+            textTransform: "uppercase", letterSpacing: 1, fontFamily,
+          }}>
+            {ex.sectionLabel}
           </div>
+        </div>
 
-          {/* Day Tabs */}
-          <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "16px" }}>
-            {WORKOUT_DAYS.map((day, idx) => {
-              const stats = getDayStats(day, state[day.label]);
-              const isToday = idx === getTodayDayIndex();
-              const isSelected = idx === selectedDay;
+        {/* Content */}
+        <div style={{ padding: "24px 20px 120px" }}>
+          <h2 style={{ fontSize: 34, fontWeight: 800, color: C.black, margin: 0, fontFamily }}>{ex.name}</h2>
+          <p style={{ fontSize: 20, fontWeight: 600, color: C.black, margin: "6px 0 24px", fontFamily }}>{ex.detail}</p>
+
+          {/* Set buttons */}
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 24 }}>
+            {Array.from({ length: ex.sets }).map((_, si) => {
+              const done = isSetDone(ex.id, si);
               return (
                 <button
-                  key={day.label}
-                  onClick={() => setSelectedDay(idx)}
+                  key={si}
+                  onClick={() => toggle(ex.id, si)}
                   style={{
-                    fontFamily: font,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    minWidth: "52px",
-                    minHeight: "48px",
-                    padding: "8px 14px 10px",
-                    borderRadius: "9999px",
-                    fontSize: "16px",
-                    fontWeight: isSelected ? 700 : 500,
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                    backgroundColor: isSelected ? C.terracotta : "rgba(255,255,255,0.55)",
-                    color: isSelected ? "#ffffff" : C.textDark,
-                    boxShadow: isSelected ? "0 4px 16px rgba(212,101,74,0.35)" : "none",
+                    width: 72, height: 72, borderRadius: 14,
+                    border: `3px solid ${C.black}`,
+                    background: done ? C.red : C.yellow,
+                    color: done ? C.white : C.black,
+                    fontSize: done ? 28 : 18, fontWeight: 800,
+                    cursor: "pointer", fontFamily,
+                    display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  <span style={{ fontWeight: 700, fontSize: "16px" }}>{day.label}</span>
-                  {/* Progress dot */}
-                  <div style={{ display: "flex", gap: "3px", marginTop: "4px" }}>
-                    {day.sections.length > 0 ? (
-                      <div
-                        style={{
-                          width: "6px",
-                          height: "6px",
-                          borderRadius: "9999px",
-                          backgroundColor: stats.pct === 100
-                            ? C.green
-                            : stats.pct > 0
-                              ? (isSelected ? "rgba(255,255,255,0.7)" : C.terracotta)
-                              : (isSelected ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.12)"),
-                          transition: "all 0.3s",
-                        }}
-                      />
-                    ) : (
-                      <div style={{ width: "6px", height: "6px" }} />
-                    )}
-                  </div>
-                  {isToday && !isSelected && (
-                    <div
-                      style={{
-                        width: "4px",
-                        height: "4px",
-                        borderRadius: "9999px",
-                        backgroundColor: C.terracotta,
-                        marginTop: "1px",
-                      }}
-                    />
-                  )}
+                  {done ? "\u2713" : `Set ${si + 1}`}
                 </button>
               );
             })}
           </div>
-        </div>
-      </header>
 
-      {/* ── Body ────────────────────────────────────────────────────────────── */}
-      <main style={{ maxWidth: "56rem", margin: "0 auto", padding: "0 16px 120px" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-
-          {/* Day Title + Progress Card */}
-          <div
-            style={{
-              backgroundColor: C.cardWhite,
-              borderRadius: cardRadius,
-              boxShadow: cardShadow,
-              padding: "24px",
-            }}
-          >
-            <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: "24px", color: C.textDark, margin: 0, letterSpacing: "-0.02em" }}>
-              {FULL_DAY_NAMES[selectedDay]}
-            </h2>
-            <p style={{ fontFamily: font, fontSize: "15px", color: C.muted, margin: "4px 0 0" }}>
-              {currentDay.title}
-            </p>
-            {!isComingSoon && (
-              <div style={{ marginTop: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "16px", marginBottom: "8px" }}>
-                  <span style={{ color: C.muted, fontWeight: 500 }}>Progress</span>
-                  <span style={{ fontWeight: 700, color: C.terracotta }}>
-                    {dayStats.checked}/{dayStats.total} sets — {dayStats.pct}%
-                  </span>
-                </div>
-                <div style={{ width: "100%", height: "8px", borderRadius: "4px", backgroundColor: C.sand, overflow: "hidden" }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      borderRadius: "4px",
-                      transition: "width 0.5s ease-out",
-                      width: `${dayStats.pct}%`,
-                      backgroundColor: dayStats.pct === 100 ? C.green : C.terracotta,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Coming Soon */}
-          {isComingSoon && (
-            <div
+          {/* Coaching cue */}
+          {ex.tip && (
+            <button
+              onClick={() => setShowTip((p) => !p)}
               style={{
-                backgroundColor: C.cardWhite,
-                borderRadius: cardRadius,
-                boxShadow: cardShadow,
-                padding: "48px 24px",
-                textAlign: "center",
+                background: C.blue, color: C.white, border: `3px solid ${C.black}`,
+                borderRadius: 10, padding: "10px 18px", fontSize: 14, fontWeight: 700,
+                cursor: "pointer", fontFamily, marginBottom: 10, width: "100%", textAlign: "left",
               }}
             >
-              <div style={{ fontSize: "48px", marginBottom: "8px" }}>🏖️</div>
-              <p style={{ fontFamily: font, fontSize: "20px", fontWeight: 700, color: C.textDark, letterSpacing: "-0.02em" }}>Coming soon</p>
-              <p style={{ fontFamily: font, fontSize: "15px", color: C.muted, marginTop: "4px" }}>
-                This day&apos;s workout will be added as your trainer sends it.
-              </p>
+              {showTip ? "\u25B2 Hide Cue" : "\u25BC Coaching Cue"}
+            </button>
+          )}
+          {showTip && ex.tip && (
+            <div style={{
+              background: C.white, border: `3px solid ${C.blue}`, borderRadius: 10,
+              padding: "12px 16px", fontSize: 15, color: C.black, fontFamily, marginBottom: 16,
+            }}>
+              {ex.tip}
             </div>
           )}
 
-          {/* ── Sections ──────────────────────────────────────────────────────── */}
-          {!isComingSoon && currentDay.sections.map((section, sectionIdx) => {
-            const isCollapsed = dayState?.collapsedSections?.[section.name] ?? false;
-            const sectionStats = getSectionStats(section, sectionIdx, dayState);
-            const sectionComplete = sectionStats.checked === sectionStats.total && sectionStats.total > 0;
-            const borderColor = sectionComplete ? C.green : C.terracotta;
-            const isDarkSection = sectionIdx % 2 === 1;
-            const cardBg = isDarkSection ? C.cardDark : C.cardWhite;
-            const textColor = isDarkSection ? C.textOnDark : C.textDark;
-            const mutedColor = isDarkSection ? C.mutedOnDark : C.muted;
-
-            return (
-              <div
-                key={section.name}
+          {/* Nav buttons */}
+          <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+            {focusIdx > 0 && (
+              <button
+                onClick={() => { setFocusIdx(focusIdx - 1); setShowTip(false); }}
                 style={{
-                  backgroundColor: cardBg,
-                  borderRadius: cardRadius,
-                  boxShadow: cardShadow,
-                  borderLeft: `4px solid ${borderColor}`,
-                  overflow: "hidden",
+                  flex: 1, padding: "14px 0", borderRadius: 12,
+                  border: `3px solid ${C.black}`, background: C.white,
+                  fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily, color: C.black,
                 }}
               >
-                {/* Section Header */}
-                <button
-                  onClick={() => toggleSection(section.name)}
-                  style={{
-                    fontFamily: font,
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "20px 24px",
-                    minHeight: "44px",
-                    border: "none",
-                    backgroundColor: "transparent",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    transition: "background-color 0.15s",
-                  }}
-                >
-                  <div style={{ color: mutedColor, flexShrink: 0 }}>
-                    {isCollapsed ? <ChevronRight size={22} /> : <ChevronDown size={22} />}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                      <h3 style={{ fontFamily: font, fontWeight: 700, fontSize: "22px", color: textColor, margin: 0, letterSpacing: "-0.02em" }}>
-                        {section.name}
-                      </h3>
-                      {sectionComplete && (
-                        <span
-                          style={{
-                            flexShrink: 0,
-                            fontSize: "12px",
-                            padding: "3px 10px",
-                            borderRadius: "9999px",
-                            backgroundColor: `${C.green}22`,
-                            color: C.green,
-                            fontWeight: 700,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.04em",
-                          }}
-                        >
-                          Complete
-                        </span>
-                      )}
-                    </div>
-                    {section.note && (
-                      <p style={{ fontFamily: font, fontSize: "14px", color: mutedColor, margin: "4px 0 0" }}>{section.note}</p>
-                    )}
-                  </div>
-                  <span
-                    style={{
-                      fontSize: "14px",
-                      color: isDarkSection ? C.gold : C.terracotta,
-                      flexShrink: 0,
-                      fontWeight: 700,
-                      backgroundColor: isDarkSection ? "rgba(242,199,68,0.15)" : "rgba(212,101,74,0.1)",
-                      padding: "4px 10px",
-                      borderRadius: "9999px",
-                    }}
-                  >
-                    {sectionStats.checked}/{sectionStats.total}
-                  </span>
-                </button>
+                \u2190 Previous
+              </button>
+            )}
+            {focusIdx < EXERCISES.length - 1 ? (
+              <button
+                onClick={() => { setFocusIdx(focusIdx + 1); setShowTip(false); }}
+                style={{
+                  flex: 1, padding: "14px 0", borderRadius: 12,
+                  border: `3px solid ${C.black}`, background: C.white,
+                  fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily, color: C.black,
+                }}
+              >
+                Next \u2192
+              </button>
+            ) : (
+              <button
+                onClick={() => { setFocusIdx(null); setShowTip(false); }}
+                style={{
+                  flex: 1, padding: "14px 0", borderRadius: 12,
+                  border: `3px solid ${C.black}`, background: C.green,
+                  fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily, color: C.white,
+                }}
+              >
+                Done \u2192
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-                {/* Exercises */}
-                {!isCollapsed && (
-                  <div style={{ padding: "0 24px 20px" }}>
-                    {section.exercises.map((exercise, exerciseIdx) => {
-                      const key = exerciseKey(sectionIdx, exerciseIdx);
-                      const checks = dayState?.sets?.[key] || Array(exercise.sets).fill(false);
-                      const allDone = checks.every(Boolean);
-                      const tipKey = `${dayKey}-${key}`;
-                      const tipExpanded = expandedTips.has(tipKey);
-                      const isAltRow = exerciseIdx % 2 === 1;
+  /* ───── BROWSE MODE ───── */
+  return (
+    <div style={{ background: C.yellow, minHeight: "100vh", fontFamily, paddingBottom: allDone ? 80 : 20 }}>
+      {/* HEADER */}
+      <header style={{ background: C.yellow, borderBottom: `4px solid ${C.black}`, padding: "16px 16px 12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: C.black, margin: 0, fontFamily }}>Thursday</h1>
+            <p style={{ fontSize: 14, fontWeight: 600, color: C.black, margin: "2px 0 0", fontFamily }}>Run Skill Day</p>
+          </div>
+          {/* Race countdown pill */}
+          <div style={{
+            background: C.black, borderRadius: 999, padding: "6px 14px",
+            display: "flex", flexDirection: "column", alignItems: "center",
+          }}>
+            <span style={{ fontSize: 24, fontWeight: 800, color: C.yellow, fontFamily, lineHeight: 1 }}>{daysToRace()}</span>
+            <span style={{ fontSize: 8, fontWeight: 700, color: C.white, fontFamily, letterSpacing: 1, textTransform: "uppercase" }}>DAYS TO RACE</span>
+          </div>
+        </div>
 
-                      // For dark sections, alt rows are lighter; for light sections, alt rows are dark
-                      const rowBg = allDone
-                        ? `${C.green}14`
-                        : isDarkSection
-                          ? (isAltRow ? "rgba(255,255,255,0.06)" : "transparent")
-                          : (isAltRow ? C.cardDark : "transparent");
-                      const rowText = allDone
-                        ? C.green
-                        : (isDarkSection
-                          ? (isAltRow ? C.textOnDark : C.textOnDark)
-                          : (isAltRow ? C.textOnDark : C.textDark));
-                      const rowMuted = isDarkSection
-                        ? C.mutedOnDark
-                        : (isAltRow ? C.mutedOnDark : C.muted);
-
-                      return (
-                        <div
-                          key={key}
-                          style={{
-                            borderRadius: "14px",
-                            padding: "16px 16px",
-                            marginBottom: "8px",
-                            transition: "background-color 0.15s",
-                            backgroundColor: rowBg,
-                          }}
-                        >
-                          <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <p
-                                style={{
-                                  fontFamily: font,
-                                  fontWeight: 600,
-                                  fontSize: "18px",
-                                  margin: 0,
-                                  color: rowText,
-                                  textDecoration: allDone ? "line-through" : "none",
-                                  textDecorationColor: allDone ? `${C.green}80` : undefined,
-                                  letterSpacing: "-0.01em",
-                                }}
-                              >
-                                {exercise.name}
-                              </p>
-                              <p
-                                style={{
-                                  fontFamily: font,
-                                  fontSize: "15px",
-                                  color: rowMuted,
-                                  margin: "3px 0 0",
-                                }}
-                              >
-                                {exercise.sets > 1 ? `${exercise.sets} × ${exercise.reps}` : exercise.reps}
-                              </p>
-                            </div>
-
-                            {/* Set Buttons */}
-                            <div style={{ display: "flex", gap: "8px", flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                              {Array.from({ length: exercise.sets }, (_, setIdx) => {
-                                const isChecked = checks[setIdx];
-                                const btnBg = isChecked
-                                  ? C.terracotta
-                                  : (isAltRow && !isDarkSection)
-                                    ? "rgba(255,255,255,0.12)"
-                                    : C.sand;
-                                const btnColor = isChecked
-                                  ? "#ffffff"
-                                  : (isAltRow && !isDarkSection)
-                                    ? C.mutedOnDark
-                                    : C.textDark;
-                                const btnBorder = isChecked
-                                  ? "none"
-                                  : (isAltRow && !isDarkSection)
-                                    ? "1.5px solid rgba(255,255,255,0.15)"
-                                    : (isDarkSection ? "1.5px solid rgba(255,255,255,0.12)" : `1.5px solid ${C.sand}`);
-                                return (
-                                  <button
-                                    key={setIdx}
-                                    onClick={() => toggleSet(sectionIdx, exerciseIdx, setIdx)}
-                                    style={{
-                                      fontFamily: font,
-                                      width: "48px",
-                                      height: "48px",
-                                      borderRadius: "10px",
-                                      fontSize: "18px",
-                                      fontWeight: 700,
-                                      border: btnBorder,
-                                      cursor: "pointer",
-                                      transition: "all 0.15s",
-                                      backgroundColor: btnBg,
-                                      color: btnColor,
-                                      boxShadow: isChecked ? "0 2px 8px rgba(212,101,74,0.3)" : "none",
-                                    }}
-                                    title={`Set ${setIdx + 1}`}
-                                  >
-                                    {isChecked ? "✓" : setIdx + 1}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          {/* Tip */}
-                          {exercise.tip && (
-                            <div style={{ marginTop: "10px" }}>
-                              <button
-                                onClick={() => toggleTip(tipKey)}
-                                style={{
-                                  fontFamily: font,
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "6px",
-                                  fontSize: "15px",
-                                  color: C.ocean,
-                                  background: "none",
-                                  border: "none",
-                                  cursor: "pointer",
-                                  padding: 0,
-                                  fontWeight: 600,
-                                  minHeight: "44px",
-                                  transition: "opacity 0.15s",
-                                }}
-                              >
-                                <Lightbulb size={16} />
-                                <span>{tipExpanded ? "Hide tip" : "Coaching cue"}</span>
-                              </button>
-                              {tipExpanded && (
-                                <p
-                                  style={{
-                                    fontFamily: font,
-                                    fontSize: "15px",
-                                    fontStyle: "italic",
-                                    color: rowMuted,
-                                    margin: "4px 0 0 22px",
-                                    lineHeight: 1.5,
-                                  }}
-                                >
-                                  {exercise.tip}
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+        {/* Section pills */}
+        <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+          {SECTIONS.map((s) => {
+            const done = isSectionDone(s);
+            return (
+              <div
+                key={s}
+                style={{
+                  padding: "5px 12px", borderRadius: 999,
+                  border: `3px solid ${C.black}`,
+                  background: done ? C.green : C.white,
+                  color: done ? C.white : C.black,
+                  fontSize: 11, fontWeight: 700, textTransform: "uppercase",
+                  letterSpacing: 0.5, fontFamily,
+                }}
+              >
+                {SECTION_NAMES[s]}
               </div>
             );
           })}
-
-          {/* ── Session Notes ──────────────────────────────────────────────────── */}
-          {!isComingSoon && (
-            <div
-              style={{
-                backgroundColor: C.cardWhite,
-                borderRadius: cardRadius,
-                boxShadow: cardShadow,
-                padding: "20px 24px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: C.muted, marginBottom: "12px" }}>
-                <StickyNote size={18} />
-                <span style={{ fontFamily: font, fontSize: "18px", fontWeight: 700, letterSpacing: "-0.02em" }}>Session Notes</span>
-              </div>
-              <textarea
-                style={{
-                  fontFamily: font,
-                  width: "100%",
-                  backgroundColor: C.sand,
-                  border: "2px solid transparent",
-                  borderRadius: "16px",
-                  padding: "16px",
-                  fontSize: "16px",
-                  color: C.textDark,
-                  resize: "none",
-                  outline: "none",
-                  lineHeight: 1.5,
-                  boxSizing: "border-box",
-                  transition: "border-color 0.2s",
-                }}
-                rows={3}
-                placeholder="How did today's session feel? Any pain, energy level, weight used..."
-                value={dayState?.notes || ""}
-                onChange={(e) => setNotes(e.target.value)}
-                onFocus={(e) => { e.currentTarget.style.borderColor = C.terracotta; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "transparent"; }}
-              />
-            </div>
-          )}
-
-          {/* ── Week Overview ──────────────────────────────────────────────────── */}
-          <div
-            style={{
-              backgroundColor: C.cardWhite,
-              borderRadius: cardRadius,
-              boxShadow: cardShadow,
-              padding: "24px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
-              <Trophy size={20} color={C.terracotta} />
-              <h3 style={{ fontFamily: font, fontWeight: 700, fontSize: "20px", color: C.textDark, margin: 0, letterSpacing: "-0.02em" }}>
-                Week Overview
-              </h3>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px" }}>
-              {WORKOUT_DAYS.map((day, idx) => {
-                const stats = getDayStats(day, state[day.label]);
-                const isToday = idx === getTodayDayIndex();
-                const noWorkout = day.sections.length === 0;
-                const isSelected = idx === selectedDay;
-                const isPast = idx < getTodayDayIndex();
-
-                // Square color logic
-                let squareBg = `${C.sand}66`; // future: sand 40% opacity
-                if (noWorkout) {
-                  squareBg = `${C.sand}66`;
-                } else if (stats.pct === 100) {
-                  squareBg = C.gold;
-                } else if (isToday) {
-                  squareBg = C.terracotta;
-                } else if (isPast && stats.pct > 0) {
-                  squareBg = `${C.gold}88`;
-                }
-
-                const squareText = (isToday && stats.pct < 100) || stats.pct === 100
-                  ? "#ffffff"
-                  : C.textDark;
-
-                return (
-                  <button
-                    key={day.label}
-                    onClick={() => setSelectedDay(idx)}
-                    style={{
-                      fontFamily: font,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "6px",
-                      padding: "8px 4px",
-                      borderRadius: "12px",
-                      border: isSelected ? `2px solid ${C.terracotta}` : "2px solid transparent",
-                      backgroundColor: "transparent",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: isToday ? 800 : 500,
-                        color: isToday ? C.terracotta : C.muted,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      {day.label}
-                    </span>
-                    <div
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "8px",
-                        backgroundColor: squareBg,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "all 0.3s",
-                      }}
-                    >
-                      {noWorkout ? (
-                        <span style={{ fontSize: "14px", color: C.muted }}>—</span>
-                      ) : (
-                        <span style={{ fontSize: "13px", fontWeight: 800, color: squareText }}>
-                          {stats.pct}
-                        </span>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
         </div>
-      </main>
+
+        {/* Progress bar */}
+        <div style={{
+          marginTop: 10, height: 8, borderRadius: 4,
+          border: `3px solid ${C.black}`, background: C.white, overflow: "hidden",
+        }}>
+          <div style={{
+            height: "100%", width: `${progress * 100}%`,
+            background: allDone ? C.green : C.red,
+            transition: "width 0.3s ease",
+          }} />
+        </div>
+      </header>
+
+      {/* MASONRY GRID */}
+      <div style={{ display: "flex", gap: 12, padding: "12px 12px 0" }}>
+        {[col1, col2].map((col, ci) => (
+          <div key={ci} style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+            {col.map((idx) => {
+              const ex = EXERCISES[idx];
+              const h = HEIGHTS[idx % HEIGHTS.length];
+              const done = isExDone(ex);
+              return (
+                <button
+                  key={ex.id}
+                  onClick={() => setFocusIdx(idx)}
+                  style={{
+                    position: "relative", height: h,
+                    border: `3px solid ${C.black}`, borderRadius: 14,
+                    overflow: "hidden", cursor: "pointer",
+                    filter: done ? "saturate(0.3)" : "none",
+                    display: "block", width: "100%", padding: 0,
+                    background: C.black,
+                    textAlign: "left",
+                  }}
+                >
+                  {/* SVG art */}
+                  <div style={{ position: "absolute", inset: 0 }}>
+                    <ExerciseSVG id={ex.id} />
+                  </div>
+                  {/* Bottom bar */}
+                  <div style={{
+                    position: "absolute", bottom: 0, left: 0, right: 0,
+                    background: C.black, padding: "8px 10px 10px",
+                  }}>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: C.yellow, textTransform: "uppercase", letterSpacing: 1, fontFamily }}>
+                      {ex.sectionLabel}
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: C.white, fontFamily, lineHeight: 1.15, margin: "2px 0 4px" }}>
+                      {ex.name}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 11, color: C.white, fontFamily, fontWeight: 600 }}>{ex.detail}</span>
+                      <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
+                        {Array.from({ length: ex.sets }).map((_, si) => (
+                          <div
+                            key={si}
+                            style={{
+                              width: 10, height: 10,
+                              border: `2px solid ${C.black}`,
+                              background: isSetDone(ex.id, si) ? C.yellow : C.white,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* COMPLETION BANNER */}
+      {allDone && (
+        <div style={{
+          position: "fixed", bottom: 0, left: 0, right: 0,
+          background: C.green, borderTop: `4px solid ${C.black}`,
+          padding: "14px 20px", textAlign: "center",
+          fontSize: 18, fontWeight: 800, color: C.white, fontFamily, zIndex: 50,
+        }}>
+          WORKOUT COMPLETE \u2014 YOU CRUSHED IT
+        </div>
+      )}
     </div>
   );
 }
