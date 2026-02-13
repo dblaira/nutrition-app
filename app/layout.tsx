@@ -8,6 +8,12 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 export const metadata: Metadata = {
   title: "Nutrition Tracker",
   description: "Smart nutrition and supplement tracking",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  },
+  themeColor: "#F2C744",
 };
 
 export default function RootLayout({

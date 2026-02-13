@@ -295,6 +295,11 @@ export default async function Home() {
     profile?.email?.[0]?.toUpperCase() ||
     "Friend";
 
+  /* Today's workout route */
+  const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const todayWorkoutSlug = dayNames[new Date().getDay()];
+  const todayWorkoutHref = `/workouts/${todayWorkoutSlug}`;
+
   /* Macro carousel data */
   const macros = [
     {
@@ -334,13 +339,17 @@ export default async function Home() {
 
   /* ═══════════════════════ RENDER ═══════════════════════ */
   return (
+    <>
+    {/* Override body bg so no dark bars show at edges */}
+    <style>{`html, body { background: ${C.sun} !important; }`}</style>
     <div
       style={{
         minHeight: "100vh",
         background: `linear-gradient(180deg, ${C.sun} 0%, ${C.sunLight} 30%, ${C.sand} 55%, ${C.cream} 100%)`,
         fontFamily,
         overflowX: "hidden",
-        paddingBottom: 60,
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 60px)",
       }}
     >
       {/* ══════════ TOP BAR ══════════ */}
@@ -642,7 +651,7 @@ export default async function Home() {
               icon: <Dumbbell size={120} strokeWidth={1.2} />,
               bg: C.terra,
               color: C.white,
-              href: "/workouts",
+              href: todayWorkoutHref,
             },
             {
               label: "Water",
@@ -684,29 +693,31 @@ export default async function Home() {
         ))}
       </div>
 
-      {/* ══════════ TODAY'S WORKOUT — bold dark card ══════════ */}
+      {/* ══════════ TODAY'S TRAINING — massive, bold ══════════ */}
       <div style={{ padding: "28px 20px 0" }}>
-        <Link href="/workouts" style={{ textDecoration: "none" }}>
+        <Link href={todayWorkoutHref} style={{ textDecoration: "none" }}>
           <div
             style={{
               background: C.charcoal,
               borderRadius: 24,
-              padding: "32px 28px",
+              padding: "40px 28px",
               boxShadow: "0 6px 30px rgba(0,0,0,0.15)",
               cursor: "pointer",
               position: "relative",
               overflow: "hidden",
-              minHeight: 180,
+              minHeight: 200,
+              display: "flex",
+              alignItems: "center",
             }}
           >
             {/* Decorative */}
             <div
               style={{
                 position: "absolute",
-                right: -30,
-                top: -30,
-                width: 160,
-                height: 160,
+                right: -40,
+                top: -40,
+                width: 200,
+                height: 200,
                 borderRadius: "50%",
                 background: C.terra,
                 opacity: 0.12,
@@ -716,71 +727,32 @@ export default async function Home() {
               style={{
                 position: "absolute",
                 right: 20,
-                bottom: -20,
-                width: 100,
-                height: 100,
+                bottom: -30,
+                width: 120,
+                height: 120,
                 borderRadius: "50%",
                 background: C.sun,
                 opacity: 0.08,
               }}
             />
 
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: C.sun,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  marginBottom: 8,
-                  fontFamily,
-                }}
-              >
-                Today&apos;s Training
-              </div>
-              <h3
-                style={{
-                  margin: "0 0 6px",
-                  fontSize: 32,
-                  fontWeight: 800,
-                  color: C.cream,
-                  fontFamily,
-                }}
-              >
-                Training Week
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 16,
-                  color: C.cream,
-                  opacity: 0.5,
-                  fontFamily,
-                }}
-              >
-                View your full workout schedule
-              </p>
-
-              <div
-                style={{
-                  marginTop: 24,
-                  display: "flex",
-                  justifyContent: "flex-end",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 700,
-                    color: C.sun,
-                    fontFamily,
-                  }}
-                >
-                  Open workouts &rarr;
-                </span>
-              </div>
-            </div>
+            <h3
+              style={{
+                margin: 0,
+                fontSize: 48,
+                fontWeight: 800,
+                color: C.cream,
+                fontFamily,
+                lineHeight: 1.05,
+                position: "relative",
+                zIndex: 1,
+              }}
+            >
+              Today&apos;s
+              <br />
+              Training
+              <span style={{ color: C.sun, marginLeft: 12 }}>&rarr;</span>
+            </h3>
           </div>
         </Link>
       </div>
@@ -892,5 +864,6 @@ export default async function Home() {
         </div>
       </div>
     </div>
+    </>
   );
 }
