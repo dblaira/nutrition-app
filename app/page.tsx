@@ -708,6 +708,7 @@ export default async function Home() {
               minHeight: 200,
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
             }}
           >
             {/* Decorative */}
@@ -739,19 +740,18 @@ export default async function Home() {
             <h3
               style={{
                 margin: 0,
-                fontSize: 48,
+                fontSize: 44,
                 fontWeight: 800,
                 color: C.cream,
                 fontFamily,
-                lineHeight: 1.05,
+                lineHeight: 1,
                 position: "relative",
                 zIndex: 1,
+                textAlign: "center",
+                width: "100%",
               }}
             >
-              Today&apos;s
-              <br />
-              Training
-              <span style={{ color: C.sun, marginLeft: 12 }}>&rarr;</span>
+              Today&apos;s Training
             </h3>
           </div>
         </Link>
