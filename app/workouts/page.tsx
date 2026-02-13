@@ -92,25 +92,9 @@ function CardShape({ bg }: { bg: string }) {
 /* ───────────────────────── MAIN ───────────────────────── */
 export default function WorkoutsLandingPage() {
   const [mounted, setMounted] = useState(false);
-  const [started, setStarted] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setMounted(true);
-    const s: Record<string, boolean> = {};
-    DAYS.forEach((d) => {
-      if (d.storageKey) {
-        try {
-          const raw = localStorage.getItem(d.storageKey);
-          if (raw) {
-            const checks = JSON.parse(raw);
-            if (Object.keys(checks).length > 0) {
-              s[d.key] = true;
-            }
-          }
-        } catch {}
-      }
-    });
-    setStarted(s);
   }, []);
 
   const todayIdx = new Date().getDay();
