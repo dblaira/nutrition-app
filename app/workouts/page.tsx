@@ -237,21 +237,28 @@ const FULL_DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
 
 const STORAGE_KEY = "workouts-check-state";
 
-// ─── Theme Colors ────────────────────────────────────────────────────────────
+// ─── Resort Optimism Theme ──────────────────────────────────────────────────
 
 const C = {
-  bg: "#ece5d8",
-  cardLight: "#ffffff",
-  cardDark: "#1a1a1a",
-  textDark: "#1a1a1a",
-  textOnDark: "#f0e8d8",
-  muted: "#8a7e6e",
-  mutedOnDark: "#a09080",
-  accent: "#9b1b30",
-  green: "#4a8c3f",
-  border: "#d4cbbf",
-  notesBg: "#faf8f4",
+  goldTop: "#F2C744",
+  goldMid: "#F7DC6F",
+  sand: "#FAF0DB",
+  cream: "#FFFDF5",
+  cardWhite: "#FFFFFF",
+  cardDark: "#2C2C2C",
+  terracotta: "#D4654A",
+  ocean: "#2B7FB5",
+  gold: "#F2C744",
+  green: "#27AE60",
+  textDark: "#2C2C2C",
+  textOnDark: "#FFFDF5",
+  muted: "#8C7B6B",
+  mutedOnDark: "#c4b8a8",
 } as const;
+
+const font = "var(--font-outfit), 'Avenir Next', 'Helvetica Neue', sans-serif";
+const cardShadow = "0 4px 24px rgba(0,0,0,0.06)";
+const cardRadius = "20px";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -264,6 +271,13 @@ function getMarathonCountdown(): number {
 
 function getTodayDayIndex(): number {
   return new Date().getDay();
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 }
 
 function exerciseKey(sectionIdx: number, exerciseIdx: number): string {
@@ -314,8 +328,6 @@ function getSectionStats(section: Section, sectionIdx: number, dayState?: CheckS
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
-
-const serif = "Georgia, 'Times New Roman', serif";
 
 export default function WorkoutsPage() {
   const [selectedDay, setSelectedDay] = useState(getTodayDayIndex);
@@ -392,57 +404,59 @@ export default function WorkoutsPage() {
   const isComingSoon = currentDay.sections.length === 0;
 
   return (
-    <div style={{ backgroundColor: C.bg, fontFamily: serif, minHeight: "100vh" }}>
+    <div
+      style={{
+        fontFamily: font,
+        minHeight: "100vh",
+        background: `linear-gradient(180deg, ${C.goldTop} 0%, ${C.goldMid} 20%, ${C.sand} 50%, ${C.cream} 100%)`,
+      }}
+    >
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header
-        style={{
-          backgroundColor: C.cardDark,
-          borderBottom: `3px solid ${C.accent}`,
-          padding: "1.25rem 1.5rem 0",
-        }}
-      >
+      <header style={{ padding: "24px 20px 0" }}>
         <div style={{ maxWidth: "56rem", margin: "0 auto" }}>
           {/* Top row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
               <Link
                 href="/"
                 style={{
-                  color: C.textOnDark,
-                  padding: "0.25rem",
-                  borderRadius: "9999px",
+                  color: C.textDark,
+                  width: "44px",
+                  height: "44px",
+                  borderRadius: "12px",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "opacity 0.15s",
+                  transition: "background-color 0.15s",
+                  backgroundColor: "rgba(255,255,255,0.5)",
                 }}
               >
                 <ArrowLeft size={22} />
               </Link>
               <div>
-                <h1 style={{ fontFamily: serif, fontSize: "1.5rem", fontWeight: 700, color: C.textOnDark, margin: 0, letterSpacing: "-0.01em" }}>
-                  Understood.
+                <h1 style={{ fontFamily: font, fontSize: "28px", fontWeight: 800, color: C.textDark, margin: 0, letterSpacing: "-0.02em" }}>
+                  Optimism.
                 </h1>
-                <p style={{ fontFamily: serif, fontSize: "0.8rem", color: C.mutedOnDark, margin: "0.125rem 0 0", letterSpacing: "0.04em", textTransform: "uppercase" }}>
-                  Marathon Training Program
+                <p style={{ fontFamily: font, fontSize: "15px", color: C.muted, margin: "2px 0 0" }}>
+                  {getGreeting()}, Adam
                 </p>
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontFamily: serif, fontSize: "2rem", fontWeight: 700, color: C.accent, lineHeight: 1 }}>
+              <div style={{ fontFamily: font, fontSize: "13px", fontWeight: 700, color: C.terracotta, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                OC Marathon
+              </div>
+              <div style={{ fontFamily: font, fontSize: "36px", fontWeight: 800, color: C.textDark, lineHeight: 1, letterSpacing: "-0.02em" }}>
                 {daysRemaining}
               </div>
-              <div style={{ fontSize: "0.65rem", color: C.mutedOnDark, textTransform: "uppercase", letterSpacing: "0.06em", marginTop: "0.125rem" }}>
-                days to race
-              </div>
-              <div style={{ fontSize: "0.65rem", color: C.mutedOnDark, letterSpacing: "0.04em" }}>
-                ({weeksRemaining} weeks)
+              <div style={{ fontSize: "13px", color: C.muted }}>
+                days ({weeksRemaining}w)
               </div>
             </div>
           </div>
 
-          {/* Day Tabs inside header */}
-          <div style={{ display: "flex", gap: "0.25rem", overflowX: "auto", paddingBottom: "0" }}>
+          {/* Day Tabs */}
+          <div style={{ display: "flex", gap: "6px", overflowX: "auto", paddingBottom: "16px" }}>
             {WORKOUT_DAYS.map((day, idx) => {
               const stats = getDayStats(day, state[day.label]);
               const isToday = idx === getTodayDayIndex();
@@ -452,47 +466,53 @@ export default function WorkoutsPage() {
                   key={day.label}
                   onClick={() => setSelectedDay(idx)}
                   style={{
-                    fontFamily: serif,
+                    fontFamily: font,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    minWidth: "3.75rem",
-                    padding: "0.5rem 0.75rem 0.625rem",
-                    borderRadius: "0.5rem 0.5rem 0 0",
-                    fontSize: "0.8rem",
+                    minWidth: "52px",
+                    minHeight: "48px",
+                    padding: "8px 14px 10px",
+                    borderRadius: "9999px",
+                    fontSize: "16px",
                     fontWeight: isSelected ? 700 : 500,
                     border: "none",
                     cursor: "pointer",
-                    transition: "all 0.15s",
-                    backgroundColor: isSelected ? C.accent : "transparent",
-                    color: isSelected ? "#ffffff" : C.mutedOnDark,
+                    transition: "all 0.2s",
+                    backgroundColor: isSelected ? C.terracotta : "rgba(255,255,255,0.55)",
+                    color: isSelected ? "#ffffff" : C.textDark,
+                    boxShadow: isSelected ? "0 4px 16px rgba(212,101,74,0.35)" : "none",
                   }}
                 >
-                  <span style={{ fontSize: "0.65rem", opacity: 0.7, textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    {FULL_DAY_NAMES[idx].slice(0, 3)}
-                  </span>
-                  <span style={{ fontWeight: 700, fontSize: "0.85rem" }}>{day.label}</span>
-                  {day.sections.length > 0 && (
-                    <div style={{ width: "100%", marginTop: "0.25rem", height: "2px", borderRadius: "1px", backgroundColor: isSelected ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+                  <span style={{ fontWeight: 700, fontSize: "16px" }}>{day.label}</span>
+                  {/* Progress dot */}
+                  <div style={{ display: "flex", gap: "3px", marginTop: "4px" }}>
+                    {day.sections.length > 0 ? (
                       <div
                         style={{
-                          height: "100%",
-                          borderRadius: "1px",
-                          transition: "width 0.3s",
-                          width: `${stats.pct}%`,
-                          backgroundColor: isSelected ? "#ffffff" : C.accent,
+                          width: "6px",
+                          height: "6px",
+                          borderRadius: "9999px",
+                          backgroundColor: stats.pct === 100
+                            ? C.green
+                            : stats.pct > 0
+                              ? (isSelected ? "rgba(255,255,255,0.7)" : C.terracotta)
+                              : (isSelected ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.12)"),
+                          transition: "all 0.3s",
                         }}
                       />
-                    </div>
-                  )}
-                  {isToday && (
+                    ) : (
+                      <div style={{ width: "6px", height: "6px" }} />
+                    )}
+                  </div>
+                  {isToday && !isSelected && (
                     <div
                       style={{
-                        width: "5px",
-                        height: "5px",
+                        width: "4px",
+                        height: "4px",
                         borderRadius: "9999px",
-                        marginTop: "0.2rem",
-                        backgroundColor: isSelected ? "#ffffff" : C.accent,
+                        backgroundColor: C.terracotta,
+                        marginTop: "1px",
                       }}
                     />
                   )}
@@ -504,40 +524,40 @@ export default function WorkoutsPage() {
       </header>
 
       {/* ── Body ────────────────────────────────────────────────────────────── */}
-      <main style={{ maxWidth: "56rem", margin: "0 auto", padding: "1.5rem 1rem 8rem" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      <main style={{ maxWidth: "56rem", margin: "0 auto", padding: "0 16px 120px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
 
           {/* Day Title + Progress Card */}
           <div
             style={{
-              backgroundColor: C.cardLight,
-              border: `1px solid ${C.border}`,
-              borderRadius: "0.75rem",
-              padding: "1.25rem 1.5rem",
+              backgroundColor: C.cardWhite,
+              borderRadius: cardRadius,
+              boxShadow: cardShadow,
+              padding: "24px",
             }}
           >
-            <h2 style={{ fontFamily: serif, fontWeight: 700, fontSize: "1.25rem", color: C.textDark, margin: 0 }}>
+            <h2 style={{ fontFamily: font, fontWeight: 800, fontSize: "24px", color: C.textDark, margin: 0, letterSpacing: "-0.02em" }}>
               {FULL_DAY_NAMES[selectedDay]}
             </h2>
-            <p style={{ fontFamily: serif, fontSize: "0.875rem", color: C.muted, margin: "0.25rem 0 0" }}>
+            <p style={{ fontFamily: font, fontSize: "15px", color: C.muted, margin: "4px 0 0" }}>
               {currentDay.title}
             </p>
             {!isComingSoon && (
-              <div style={{ marginTop: "0.875rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", marginBottom: "0.375rem" }}>
-                  <span style={{ color: C.muted }}>Progress</span>
-                  <span style={{ fontWeight: 600, color: C.accent }}>
+              <div style={{ marginTop: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "16px", marginBottom: "8px" }}>
+                  <span style={{ color: C.muted, fontWeight: 500 }}>Progress</span>
+                  <span style={{ fontWeight: 700, color: C.terracotta }}>
                     {dayStats.checked}/{dayStats.total} sets — {dayStats.pct}%
                   </span>
                 </div>
-                <div style={{ width: "100%", height: "6px", borderRadius: "3px", backgroundColor: "#e0d8cc", overflow: "hidden" }}>
+                <div style={{ width: "100%", height: "8px", borderRadius: "4px", backgroundColor: C.sand, overflow: "hidden" }}>
                   <div
                     style={{
                       height: "100%",
-                      borderRadius: "3px",
+                      borderRadius: "4px",
                       transition: "width 0.5s ease-out",
                       width: `${dayStats.pct}%`,
-                      backgroundColor: dayStats.pct === 100 ? C.green : C.accent,
+                      backgroundColor: dayStats.pct === 100 ? C.green : C.terracotta,
                     }}
                   />
                 </div>
@@ -549,16 +569,16 @@ export default function WorkoutsPage() {
           {isComingSoon && (
             <div
               style={{
-                backgroundColor: C.cardLight,
-                border: `1px solid ${C.border}`,
-                borderRadius: "0.75rem",
-                padding: "3rem 1.5rem",
+                backgroundColor: C.cardWhite,
+                borderRadius: cardRadius,
+                boxShadow: cardShadow,
+                padding: "48px 24px",
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>🏗️</div>
-              <p style={{ fontFamily: serif, fontSize: "1.125rem", color: C.muted }}>Coming soon</p>
-              <p style={{ fontFamily: serif, fontSize: "0.875rem", color: C.muted, marginTop: "0.25rem" }}>
+              <div style={{ fontSize: "48px", marginBottom: "8px" }}>🏖️</div>
+              <p style={{ fontFamily: font, fontSize: "20px", fontWeight: 700, color: C.textDark, letterSpacing: "-0.02em" }}>Coming soon</p>
+              <p style={{ fontFamily: font, fontSize: "15px", color: C.muted, marginTop: "4px" }}>
                 This day&apos;s workout will be added as your trainer sends it.
               </p>
             </div>
@@ -569,16 +589,20 @@ export default function WorkoutsPage() {
             const isCollapsed = dayState?.collapsedSections?.[section.name] ?? false;
             const sectionStats = getSectionStats(section, sectionIdx, dayState);
             const sectionComplete = sectionStats.checked === sectionStats.total && sectionStats.total > 0;
-            const borderColor = sectionComplete ? C.green : C.accent;
+            const borderColor = sectionComplete ? C.green : C.terracotta;
+            const isDarkSection = sectionIdx % 2 === 1;
+            const cardBg = isDarkSection ? C.cardDark : C.cardWhite;
+            const textColor = isDarkSection ? C.textOnDark : C.textDark;
+            const mutedColor = isDarkSection ? C.mutedOnDark : C.muted;
 
             return (
               <div
                 key={section.name}
                 style={{
-                  backgroundColor: C.cardLight,
-                  border: `1px solid ${C.border}`,
+                  backgroundColor: cardBg,
+                  borderRadius: cardRadius,
+                  boxShadow: cardShadow,
                   borderLeft: `4px solid ${borderColor}`,
-                  borderRadius: "0.75rem",
                   overflow: "hidden",
                 }}
               >
@@ -586,39 +610,38 @@ export default function WorkoutsPage() {
                 <button
                   onClick={() => toggleSection(section.name)}
                   style={{
-                    fontFamily: serif,
+                    fontFamily: font,
                     width: "100%",
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "1rem 1.25rem",
+                    gap: "12px",
+                    padding: "20px 24px",
+                    minHeight: "44px",
                     border: "none",
                     backgroundColor: "transparent",
                     cursor: "pointer",
                     textAlign: "left",
                     transition: "background-color 0.15s",
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f8f5ef"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
                 >
-                  <div style={{ color: C.muted }}>
-                    {isCollapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+                  <div style={{ color: mutedColor, flexShrink: 0 }}>
+                    {isCollapsed ? <ChevronRight size={22} /> : <ChevronDown size={22} />}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <h3 style={{ fontFamily: serif, fontWeight: 600, fontSize: "0.95rem", color: C.textDark, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                      <h3 style={{ fontFamily: font, fontWeight: 700, fontSize: "22px", color: textColor, margin: 0, letterSpacing: "-0.02em" }}>
                         {section.name}
                       </h3>
                       {sectionComplete && (
                         <span
                           style={{
                             flexShrink: 0,
-                            fontSize: "0.65rem",
-                            padding: "0.125rem 0.5rem",
+                            fontSize: "12px",
+                            padding: "3px 10px",
                             borderRadius: "9999px",
-                            backgroundColor: `${C.green}20`,
+                            backgroundColor: `${C.green}22`,
                             color: C.green,
-                            fontWeight: 600,
+                            fontWeight: 700,
                             textTransform: "uppercase",
                             letterSpacing: "0.04em",
                           }}
@@ -628,65 +651,83 @@ export default function WorkoutsPage() {
                       )}
                     </div>
                     {section.note && (
-                      <p style={{ fontFamily: serif, fontSize: "0.75rem", color: C.muted, margin: "0.2rem 0 0" }}>{section.note}</p>
+                      <p style={{ fontFamily: font, fontSize: "14px", color: mutedColor, margin: "4px 0 0" }}>{section.note}</p>
                     )}
                   </div>
-                  <span style={{ fontSize: "0.75rem", color: C.muted, flexShrink: 0, fontWeight: 500 }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      color: isDarkSection ? C.gold : C.terracotta,
+                      flexShrink: 0,
+                      fontWeight: 700,
+                      backgroundColor: isDarkSection ? "rgba(242,199,68,0.15)" : "rgba(212,101,74,0.1)",
+                      padding: "4px 10px",
+                      borderRadius: "9999px",
+                    }}
+                  >
                     {sectionStats.checked}/{sectionStats.total}
                   </span>
                 </button>
 
                 {/* Exercises */}
                 {!isCollapsed && (
-                  <div style={{ padding: "0 1.25rem 1rem" }}>
+                  <div style={{ padding: "0 24px 20px" }}>
                     {section.exercises.map((exercise, exerciseIdx) => {
                       const key = exerciseKey(sectionIdx, exerciseIdx);
                       const checks = dayState?.sets?.[key] || Array(exercise.sets).fill(false);
                       const allDone = checks.every(Boolean);
                       const tipKey = `${dayKey}-${key}`;
                       const tipExpanded = expandedTips.has(tipKey);
-                      const isDarkRow = exerciseIdx % 2 === 1;
+                      const isAltRow = exerciseIdx % 2 === 1;
+
+                      // For dark sections, alt rows are lighter; for light sections, alt rows are dark
+                      const rowBg = allDone
+                        ? `${C.green}14`
+                        : isDarkSection
+                          ? (isAltRow ? "rgba(255,255,255,0.06)" : "transparent")
+                          : (isAltRow ? C.cardDark : "transparent");
+                      const rowText = allDone
+                        ? C.green
+                        : (isDarkSection
+                          ? (isAltRow ? C.textOnDark : C.textOnDark)
+                          : (isAltRow ? C.textOnDark : C.textDark));
+                      const rowMuted = isDarkSection
+                        ? C.mutedOnDark
+                        : (isAltRow ? C.mutedOnDark : C.muted);
 
                       return (
                         <div
                           key={key}
                           style={{
-                            borderRadius: "0.5rem",
-                            padding: "0.75rem 0.875rem",
-                            marginBottom: "0.375rem",
+                            borderRadius: "14px",
+                            padding: "16px 16px",
+                            marginBottom: "8px",
                             transition: "background-color 0.15s",
-                            backgroundColor: allDone
-                              ? `${C.green}12`
-                              : isDarkRow
-                                ? C.cardDark
-                                : "transparent",
+                            backgroundColor: rowBg,
                           }}
                         >
-                          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p
                                 style={{
-                                  fontFamily: serif,
-                                  fontWeight: 500,
-                                  fontSize: "0.875rem",
+                                  fontFamily: font,
+                                  fontWeight: 600,
+                                  fontSize: "18px",
                                   margin: 0,
-                                  color: allDone
-                                    ? C.green
-                                    : isDarkRow
-                                      ? C.textOnDark
-                                      : C.textDark,
+                                  color: rowText,
                                   textDecoration: allDone ? "line-through" : "none",
-                                  textDecorationColor: allDone ? `${C.green}60` : undefined,
+                                  textDecorationColor: allDone ? `${C.green}80` : undefined,
+                                  letterSpacing: "-0.01em",
                                 }}
                               >
                                 {exercise.name}
                               </p>
                               <p
                                 style={{
-                                  fontFamily: serif,
-                                  fontSize: "0.75rem",
-                                  color: isDarkRow ? C.mutedOnDark : C.muted,
-                                  margin: "0.125rem 0 0",
+                                  fontFamily: font,
+                                  fontSize: "15px",
+                                  color: rowMuted,
+                                  margin: "3px 0 0",
                                 }}
                               >
                                 {exercise.sets > 1 ? `${exercise.sets} × ${exercise.reps}` : exercise.reps}
@@ -694,62 +735,83 @@ export default function WorkoutsPage() {
                             </div>
 
                             {/* Set Buttons */}
-                            <div style={{ display: "flex", gap: "0.375rem", flexShrink: 0 }}>
-                              {Array.from({ length: exercise.sets }, (_, setIdx) => (
-                                <button
-                                  key={setIdx}
-                                  onClick={() => toggleSet(sectionIdx, exerciseIdx, setIdx)}
-                                  style={{
-                                    fontFamily: serif,
-                                    width: "2rem",
-                                    height: "2rem",
-                                    borderRadius: "0.375rem",
-                                    fontSize: "0.7rem",
-                                    fontWeight: 700,
-                                    border: checks[setIdx] ? "none" : `1.5px solid ${isDarkRow ? "rgba(255,255,255,0.15)" : C.border}`,
-                                    cursor: "pointer",
-                                    transition: "all 0.15s",
-                                    backgroundColor: checks[setIdx] ? C.accent : isDarkRow ? "rgba(255,255,255,0.07)" : "#f5f0e8",
-                                    color: checks[setIdx] ? "#ffffff" : isDarkRow ? C.mutedOnDark : C.muted,
-                                  }}
-                                  title={`Set ${setIdx + 1}`}
-                                >
-                                  {checks[setIdx] ? "✓" : setIdx + 1}
-                                </button>
-                              ))}
+                            <div style={{ display: "flex", gap: "8px", flexShrink: 0, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                              {Array.from({ length: exercise.sets }, (_, setIdx) => {
+                                const isChecked = checks[setIdx];
+                                const btnBg = isChecked
+                                  ? C.terracotta
+                                  : (isAltRow && !isDarkSection)
+                                    ? "rgba(255,255,255,0.12)"
+                                    : C.sand;
+                                const btnColor = isChecked
+                                  ? "#ffffff"
+                                  : (isAltRow && !isDarkSection)
+                                    ? C.mutedOnDark
+                                    : C.textDark;
+                                const btnBorder = isChecked
+                                  ? "none"
+                                  : (isAltRow && !isDarkSection)
+                                    ? "1.5px solid rgba(255,255,255,0.15)"
+                                    : (isDarkSection ? "1.5px solid rgba(255,255,255,0.12)" : `1.5px solid ${C.sand}`);
+                                return (
+                                  <button
+                                    key={setIdx}
+                                    onClick={() => toggleSet(sectionIdx, exerciseIdx, setIdx)}
+                                    style={{
+                                      fontFamily: font,
+                                      width: "48px",
+                                      height: "48px",
+                                      borderRadius: "10px",
+                                      fontSize: "18px",
+                                      fontWeight: 700,
+                                      border: btnBorder,
+                                      cursor: "pointer",
+                                      transition: "all 0.15s",
+                                      backgroundColor: btnBg,
+                                      color: btnColor,
+                                      boxShadow: isChecked ? "0 2px 8px rgba(212,101,74,0.3)" : "none",
+                                    }}
+                                    title={`Set ${setIdx + 1}`}
+                                  >
+                                    {isChecked ? "✓" : setIdx + 1}
+                                  </button>
+                                );
+                              })}
                             </div>
                           </div>
 
                           {/* Tip */}
                           {exercise.tip && (
-                            <div style={{ marginTop: "0.5rem" }}>
+                            <div style={{ marginTop: "10px" }}>
                               <button
                                 onClick={() => toggleTip(tipKey)}
                                 style={{
-                                  fontFamily: serif,
+                                  fontFamily: font,
                                   display: "flex",
                                   alignItems: "center",
-                                  gap: "0.375rem",
-                                  fontSize: "0.7rem",
-                                  color: C.accent,
+                                  gap: "6px",
+                                  fontSize: "15px",
+                                  color: C.ocean,
                                   background: "none",
                                   border: "none",
                                   cursor: "pointer",
                                   padding: 0,
+                                  fontWeight: 600,
+                                  minHeight: "44px",
                                   transition: "opacity 0.15s",
                                 }}
                               >
-                                <Lightbulb size={12} />
+                                <Lightbulb size={16} />
                                 <span>{tipExpanded ? "Hide tip" : "Coaching cue"}</span>
                               </button>
                               {tipExpanded && (
                                 <p
                                   style={{
-                                    fontFamily: serif,
-                                    fontSize: "0.75rem",
+                                    fontFamily: font,
+                                    fontSize: "15px",
                                     fontStyle: "italic",
-                                    color: isDarkRow ? C.mutedOnDark : C.muted,
-                                    margin: "0.375rem 0 0 1.125rem",
+                                    color: rowMuted,
+                                    margin: "4px 0 0 22px",
                                     lineHeight: 1.5,
                                   }}
                                 >
@@ -771,37 +833,38 @@ export default function WorkoutsPage() {
           {!isComingSoon && (
             <div
               style={{
-                backgroundColor: C.cardLight,
-                border: `1px solid ${C.border}`,
-                borderRadius: "0.75rem",
-                padding: "1rem 1.25rem",
+                backgroundColor: C.cardWhite,
+                borderRadius: cardRadius,
+                boxShadow: cardShadow,
+                padding: "20px 24px",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: C.muted, marginBottom: "0.625rem" }}>
-                <StickyNote size={15} />
-                <span style={{ fontFamily: serif, fontSize: "0.85rem", fontWeight: 600 }}>Session Notes</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", color: C.muted, marginBottom: "12px" }}>
+                <StickyNote size={18} />
+                <span style={{ fontFamily: font, fontSize: "18px", fontWeight: 700, letterSpacing: "-0.02em" }}>Session Notes</span>
               </div>
               <textarea
                 style={{
-                  fontFamily: serif,
+                  fontFamily: font,
                   width: "100%",
-                  backgroundColor: C.notesBg,
-                  border: `1px solid ${C.border}`,
-                  borderRadius: "0.5rem",
-                  padding: "0.75rem",
-                  fontSize: "0.85rem",
+                  backgroundColor: C.sand,
+                  border: "2px solid transparent",
+                  borderRadius: "16px",
+                  padding: "16px",
+                  fontSize: "16px",
                   color: C.textDark,
                   resize: "none",
                   outline: "none",
                   lineHeight: 1.5,
                   boxSizing: "border-box",
+                  transition: "border-color 0.2s",
                 }}
                 rows={3}
                 placeholder="How did today's session feel? Any pain, energy level, weight used..."
                 value={dayState?.notes || ""}
                 onChange={(e) => setNotes(e.target.value)}
-                onFocus={(e) => { e.currentTarget.style.borderColor = C.accent; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = C.border; }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = C.terracotta; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "transparent"; }}
               />
             </div>
           )}
@@ -809,101 +872,91 @@ export default function WorkoutsPage() {
           {/* ── Week Overview ──────────────────────────────────────────────────── */}
           <div
             style={{
-              backgroundColor: C.cardDark,
-              borderRadius: "0.75rem",
-              padding: "1.25rem 1.5rem",
+              backgroundColor: C.cardWhite,
+              borderRadius: cardRadius,
+              boxShadow: cardShadow,
+              padding: "24px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
-              <Trophy size={17} color={C.accent} />
-              <h3 style={{ fontFamily: serif, fontWeight: 600, fontSize: "0.95rem", color: C.textOnDark, margin: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+              <Trophy size={20} color={C.terracotta} />
+              <h3 style={{ fontFamily: font, fontWeight: 700, fontSize: "20px", color: C.textDark, margin: 0, letterSpacing: "-0.02em" }}>
                 Week Overview
               </h3>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.375rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px" }}>
               {WORKOUT_DAYS.map((day, idx) => {
                 const stats = getDayStats(day, state[day.label]);
                 const isToday = idx === getTodayDayIndex();
                 const noWorkout = day.sections.length === 0;
                 const isSelected = idx === selectedDay;
+                const isPast = idx < getTodayDayIndex();
+
+                // Square color logic
+                let squareBg = `${C.sand}66`; // future: sand 40% opacity
+                if (noWorkout) {
+                  squareBg = `${C.sand}66`;
+                } else if (stats.pct === 100) {
+                  squareBg = C.gold;
+                } else if (isToday) {
+                  squareBg = C.terracotta;
+                } else if (isPast && stats.pct > 0) {
+                  squareBg = `${C.gold}88`;
+                }
+
+                const squareText = (isToday && stats.pct < 100) || stats.pct === 100
+                  ? "#ffffff"
+                  : C.textDark;
+
                 return (
                   <button
                     key={day.label}
                     onClick={() => setSelectedDay(idx)}
                     style={{
-                      fontFamily: serif,
+                      fontFamily: font,
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      padding: "0.5rem 0.25rem",
-                      borderRadius: "0.5rem",
-                      border: isSelected ? `1.5px solid ${C.accent}` : "1.5px solid transparent",
-                      backgroundColor: isSelected ? "rgba(155, 27, 48, 0.12)" : "transparent",
+                      gap: "6px",
+                      padding: "8px 4px",
+                      borderRadius: "12px",
+                      border: isSelected ? `2px solid ${C.terracotta}` : "2px solid transparent",
+                      backgroundColor: "transparent",
                       cursor: "pointer",
                       transition: "all 0.15s",
                     }}
                   >
                     <span
                       style={{
-                        fontSize: "0.65rem",
-                        marginBottom: "0.25rem",
-                        fontWeight: isToday ? 700 : 400,
-                        color: isToday ? C.textOnDark : C.mutedOnDark,
+                        fontSize: "12px",
+                        fontWeight: isToday ? 800 : 500,
+                        color: isToday ? C.terracotta : C.muted,
                         textTransform: "uppercase",
                         letterSpacing: "0.04em",
                       }}
                     >
                       {day.label}
                     </span>
-                    {noWorkout ? (
-                      <div
-                        style={{
-                          width: "2rem",
-                          height: "2rem",
-                          borderRadius: "9999px",
-                          backgroundColor: "rgba(255,255,255,0.06)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span style={{ fontSize: "0.7rem", color: C.mutedOnDark }}>—</span>
-                      </div>
-                    ) : (
-                      <div style={{ position: "relative", width: "2rem", height: "2rem" }}>
-                        <svg viewBox="0 0 36 36" style={{ width: "2rem", height: "2rem", transform: "rotate(-90deg)" }}>
-                          <circle
-                            cx="18" cy="18" r="15"
-                            fill="none"
-                            stroke="rgba(255,255,255,0.08)"
-                            strokeWidth="3"
-                          />
-                          <circle
-                            cx="18" cy="18" r="15"
-                            fill="none"
-                            stroke={stats.pct === 100 ? C.green : C.accent}
-                            strokeWidth="3"
-                            strokeDasharray={`${stats.pct * 0.9425} 94.25`}
-                            strokeLinecap="round"
-                            style={{ transition: "all 0.5s" }}
-                          />
-                        </svg>
-                        <span
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "0.6rem",
-                            fontWeight: 700,
-                            color: stats.pct === 100 ? C.green : C.textOnDark,
-                          }}
-                        >
-                          {stats.pct > 0 ? `${stats.pct}` : "0"}
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "8px",
+                        backgroundColor: squareBg,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        transition: "all 0.3s",
+                      }}
+                    >
+                      {noWorkout ? (
+                        <span style={{ fontSize: "14px", color: C.muted }}>—</span>
+                      ) : (
+                        <span style={{ fontSize: "13px", fontWeight: 800, color: squareText }}>
+                          {stats.pct}
                         </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </button>
                 );
               })}
