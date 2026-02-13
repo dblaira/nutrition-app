@@ -19,10 +19,10 @@ const C = {
 const fontFamily = `var(--font-outfit), 'Avenir Next', 'Helvetica Neue', sans-serif`;
 
 /* ───────────────────────── HEIGHTS ───────────────────────── */
-const HEIGHTS = [220,270,200,250,230,280,210,260,240,290,195,310,225,245,205,265,235,220,250,230];
+const HEIGHTS = [220,270,200,250,230,280,210,260,240,290,195,310,225,245,205,265,235];
 
 /* ───────────────────────── STORAGE ───────────────────────── */
-const STORAGE_KEY = "optimism-pop-friday-v1";
+const STORAGE_KEY = "optimism-pop-v1";
 
 type CheckState = Record<string, boolean[]>;
 
@@ -53,34 +53,27 @@ interface Exercise {
 }
 
 const EXERCISES: Exercise[] = [
-  /* ── Warm-Up ── */
-  { id: "fri-short-foot", name: "Short Foot Holds", section: "warmup", sectionLabel: "Warm-Up", sets: 2, detail: "10 sec each foot", tip: "Press big toe, little toe, and heel into the ground, then lightly lift your arch by pulling the ball of your foot toward your heel WITHOUT curling your toes." },
-  { id: "fri-band-eversion", name: "Band Ankle Eversion", section: "warmup", sectionLabel: "Warm-Up", sets: 2, detail: "15 each side", tip: "Press outside of foot against resistance \u2014 targets peroneals for lateral ankle stability." },
-  { id: "fri-adductor-squeeze", name: "Adductor Squeeze", section: "warmup", sectionLabel: "Warm-Up", sets: 2, detail: "20 sec hold" },
-  { id: "fri-band-hip-march-wu", name: "Band Hip Flexion March", section: "warmup", sectionLabel: "Warm-Up", sets: 2, detail: "8 each side" },
-
-  /* ── Main Work: Group 1 ── */
-  { id: "fri-goblet-squat", name: "Goblet Squat", section: "main-1", sectionLabel: "Main \u2014 Group 1", sets: 3, detail: "12 reps \u00b7 slow tempo", tip: "Controlled descent, chest up, knees tracking over toes. 3 sec down, 1 sec pause at bottom. This is tissue capacity work, not max effort." },
-  { id: "fri-sl-rdl", name: "Single-Leg RDL", section: "main-1", sectionLabel: "Main \u2014 Group 1", sets: 3, detail: "8 each side \u00b7 light", tip: "Hinge at hips, slight knee bend, feel the stretch in hamstrings. Keep weight close to your leg." },
-  { id: "fri-pallof-press", name: "Pallof Press", section: "main-1", sectionLabel: "Main \u2014 Group 1", sets: 3, detail: "10 each side", tip: "Press hands straight out from chest, resist the cable pulling you into rotation. Keep hips square." },
-
-  /* ── Main Work: Group 2 ── */
-  { id: "fri-reverse-lunge", name: "Reverse Lunge to Balance", section: "main-2", sectionLabel: "Main \u2014 Group 2", sets: 3, detail: "8 each leg", tip: "Step back into lunge, then drive knee up and hold 2 seconds at top. Proprioceptive challenge that feeds running mechanics." },
-  { id: "fri-lateral-band-walk-main", name: "Lateral Band Walks", section: "main-2", sectionLabel: "Main \u2014 Group 2", sets: 3, detail: "12 each side", tip: "Band around ankles or just above knees. Stay low in quarter squat, step sideways with control." },
-  { id: "fri-side-plank-dip", name: "Side Plank Hip Dip", section: "main-2", sectionLabel: "Main \u2014 Group 2", sets: 2, detail: "10 each side", tip: "From side plank, lower hip toward floor and drive back up. Targets lateral hip stabilizers." },
-
-  /* ── Correctives & Accessories ── */
-  { id: "fri-band-eversion-corr", name: "Band Eversion", section: "correctives", sectionLabel: "Correctives", sets: 2, detail: "15\u201320 each side" },
-  { id: "fri-calf-raises", name: "Calf Raises (slow)", section: "correctives", sectionLabel: "Correctives", sets: 3, detail: "12\u201315 reps", tip: "Go slow on the way up AND down. Full range of motion \u2014 drop the heel below the step." },
-  { id: "fri-tib-raises", name: "Tibialis Raises", section: "correctives", sectionLabel: "Correctives", sets: 3, detail: "15\u201320 reps", tip: "Lean back against wall, heels 6\u20138 inches from baseboard. Lift the balls of your feet toward your shins. Slow and controlled." },
-  { id: "fri-sl-balance", name: "Single Leg Balance", section: "correctives", sectionLabel: "Correctives", sets: 2, detail: "20\u201330 sec each" },
-  { id: "fri-band-hip-march-corr", name: "Band Hip Flexion March", section: "correctives", sectionLabel: "Correctives", sets: 2, detail: "8\u201312 each side" },
-  { id: "fri-adduction-raises", name: "Side Lying Adduction", section: "correctives", sectionLabel: "Correctives", sets: 2, detail: "10\u201315 each side", tip: "Top leg crossed over, lift bottom leg with control." },
-  { id: "fri-lateral-band-walk-corr", name: "Lateral Band Walk", section: "correctives", sectionLabel: "Correctives", sets: 2, detail: "10\u201315 steps each way" },
+  { id: "wall-dorsiflexion", name: "Wall Dorsiflexion", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "10 per side", tip: "Drive knee over toes toward wall, heel stays down" },
+  { id: "ankle-circles", name: "Ankle Circles", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "10 each direction" },
+  { id: "eversion-hold", name: "Eversion Hold", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "15 sec hold", tip: "Press outside of foot against wall — targets peroneals" },
+  { id: "short-foot", name: "Short Foot", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "10 sec each side", tip: "Big toe, little toe, heel down. Lift arch WITHOUT curling toes" },
+  { id: "hip-flexor-march", name: "Hip Flexor March", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "10 sec hold", tip: "Knee to hip height, pelvis level" },
+  { id: "adduction-raises", name: "Adduction Raises", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "8 each side", tip: "Top leg crossed over, lift bottom leg" },
+  { id: "sl-balance", name: "SL Balance", section: "pre-run", sectionLabel: "Activation", sets: 2, detail: "20 sec each" },
+  { id: "sl-rdl-reach", name: "SL RDL Reach", section: "pre-run", sectionLabel: "Activation", sets: 1, detail: "5 each, slow" },
+  { id: "a-skip", name: "A Skip", section: "drills", sectionLabel: "Drills", sets: 2, detail: "2 × 20m", tip: "Easy rhythm. Knee up, quick hop. Relaxed" },
+  { id: "b-skip", name: "B Skip", section: "drills", sectionLabel: "Drills", sets: 2, detail: "2 × 20m", tip: "Smooth knee drive. DON\u2019T reach. Pulls back under" },
+  { id: "high-knees", name: "High Knees", section: "drills", sectionLabel: "Drills", sets: 2, detail: "2 × 10 sec", tip: 'Quick contacts, NOT max height. "Hot coals"' },
+  { id: "easy-run", name: "Easy Run", section: "run", sectionLabel: "Run", sets: 1, detail: "Zone 2 · 30–40 min", tip: "Conversation pace. If you can\u2019t talk, slow down" },
+  { id: "cooldown-walk", name: "Cooldown Walk", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "3–5 min" },
+  { id: "foam-roll-quads", name: "Foam Roll Quads", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "45s each" },
+  { id: "foam-roll-calves", name: "Foam Roll Calves", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "45s each" },
+  { id: "hip-flexor-stretch", name: "Hip Flexor Stretch", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "30–45s hold" },
+  { id: "calf-stretch", name: "Calf Stretch", section: "recovery", sectionLabel: "Recovery", sets: 1, detail: "30–45s hold" },
 ];
 
-const SECTIONS = ["warmup", "main-1", "main-2", "correctives"];
-const SECTION_NAMES: Record<string, string> = { warmup: "Warm-Up", "main-1": "Group 1", "main-2": "Group 2", correctives: "Correctives" };
+const SECTIONS = ["pre-run", "drills", "run", "recovery"];
+const SECTION_NAMES: Record<string, string> = { "pre-run": "Activation", drills: "Drills", run: "Run", recovery: "Recovery" };
 
 /* ───────────────────────── SVG ART ───────────────────────── */
 function ExerciseSVG({ id }: { id: string }) {
@@ -88,8 +81,42 @@ function ExerciseSVG({ id }: { id: string }) {
   const common = { xmlns: "http://www.w3.org/2000/svg", viewBox: s, width: "100%", height: "100%", preserveAspectRatio: "xMidYMid slice" as const };
 
   switch (id) {
-    /* ── Warm-Up ── */
-    case "fri-short-foot":
+    case "wall-dorsiflexion":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.yellow} />
+          <rect x="100" y="0" width="100" height="200" fill={C.black} />
+          <rect x="100" y="150" width="100" height="50" fill={C.white} />
+          <polygon points="60,180 90,140 110,160 80,200" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <path d="M 70 160 Q 50 130 80 120" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <line x1="100" y1="0" x2="100" y2="200" stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "ankle-circles":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <circle cx="100" cy="100" r="80" fill="none" stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="80" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="58" fill={C.blue} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="36" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="16" fill={C.white} stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "eversion-hold":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.orange} />
+          <rect x="160" y="0" width="40" height="200" fill={C.black} />
+          <circle cx="100" cy="100" r="55" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="35" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="16" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <line x1="10" y1="80" x2="45" y2="80" stroke={C.black} strokeWidth="4" />
+          <line x1="10" y1="100" x2="50" y2="100" stroke={C.black} strokeWidth="4" />
+          <line x1="10" y1="120" x2="45" y2="120" stroke={C.black} strokeWidth="4" />
+        </svg>
+      );
+    case "short-foot":
       return (
         <svg {...common}>
           <rect width="200" height="200" fill={C.yellow} />
@@ -103,30 +130,7 @@ function ExerciseSVG({ id }: { id: string }) {
           <polygon points="92,98 100,80 108,98" fill={C.black} />
         </svg>
       );
-    case "fri-band-eversion":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.orange} />
-          <rect x="160" y="0" width="40" height="200" fill={C.black} />
-          <circle cx="100" cy="100" r="55" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <circle cx="100" cy="100" r="35" fill={C.red} stroke={C.black} strokeWidth="3" />
-          <circle cx="100" cy="100" r="16" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <line x1="10" y1="80" x2="45" y2="80" stroke={C.black} strokeWidth="4" />
-          <line x1="10" y1="100" x2="50" y2="100" stroke={C.black} strokeWidth="4" />
-          <line x1="10" y1="120" x2="45" y2="120" stroke={C.black} strokeWidth="4" />
-        </svg>
-      );
-    case "fri-adductor-squeeze":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.teal} />
-          <circle cx="80" cy="100" r="50" fill={C.yellow} stroke={C.black} strokeWidth="3" />
-          <circle cx="120" cy="100" r="50" fill={C.red} stroke={C.black} strokeWidth="3" />
-          <rect x="85" y="70" width="30" height="60" rx="10" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="60" x2="100" y2="140" stroke={C.black} strokeWidth="3" strokeDasharray="6 4" />
-        </svg>
-      );
-    case "fri-band-hip-march-wu":
+    case "hip-flexor-march":
       return (
         <svg {...common}>
           <rect width="200" height="200" fill={C.blue} />
@@ -142,148 +146,21 @@ function ExerciseSVG({ id }: { id: string }) {
           <ellipse cx="172" cy="35" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
         </svg>
       );
-
-    /* ── Main Work: Group 1 ── */
-    case "fri-goblet-squat":
+    case "adduction-raises":
       return (
         <svg {...common}>
-          <rect width="200" height="200" fill={C.red} />
-          <rect x="0" y="160" width="200" height="40" fill={C.black} />
-          <rect x="70" y="50" width="60" height="110" rx="8" fill={C.yellow} stroke={C.black} strokeWidth="3" />
-          <rect x="85" y="30" width="30" height="30" rx="4" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <line x1="70" y1="80" x2="45" y2="95" stroke={C.black} strokeWidth="4" />
-          <line x1="130" y1="80" x2="155" y2="95" stroke={C.black} strokeWidth="4" />
-          <rect x="75" y="160" width="20" height="30" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <rect x="105" y="160" width="20" height="30" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <polygon points="90,10 100,0 110,10" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <rect width="200" height="80" fill={C.white} />
+          <rect x="0" y="80" width="200" height="120" fill={C.blue} />
+          <line x1="0" y1="80" x2="200" y2="80" stroke={C.black} strokeWidth="3" />
+          <polygon points="10,120 50,80 90,120 70,160 30,160" fill={C.teal} stroke={C.black} strokeWidth="3" />
+          <circle cx="160" cy="50" r="28" fill={C.yellow} stroke={C.black} strokeWidth="3" />
         </svg>
       );
-    case "fri-sl-rdl":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.yellow} />
-          <path d="M 30 180 Q 60 140 80 160 Q 100 180 120 120 Q 140 60 170 30" fill="none" stroke={C.white} strokeWidth="18" />
-          <path d="M 30 180 Q 60 140 80 160 Q 100 180 120 120 Q 140 60 170 30" fill="none" stroke={C.black} strokeWidth="4" />
-          <circle cx="120" cy="105" r="8" fill={C.red} stroke={C.black} strokeWidth="2" />
-          <line x1="120" y1="113" x2="120" y2="140" stroke={C.black} strokeWidth="3" />
-          <line x1="120" y1="125" x2="105" y2="115" stroke={C.black} strokeWidth="2" />
-          <line x1="120" y1="125" x2="135" y2="115" stroke={C.black} strokeWidth="2" />
-          <line x1="120" y1="140" x2="110" y2="160" stroke={C.black} strokeWidth="2" />
-          <line x1="120" y1="140" x2="145" y2="125" stroke={C.black} strokeWidth="2" />
-          <rect x="100" y="155" width="25" height="8" rx="4" fill={C.blue} stroke={C.black} strokeWidth="2" />
-        </svg>
-      );
-    case "fri-pallof-press":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.blue} />
-          <rect x="170" y="0" width="30" height="200" fill={C.black} />
-          <line x1="170" y1="100" x2="100" y2="100" stroke={C.yellow} strokeWidth="5" />
-          <circle cx="100" cy="70" r="14" fill={C.red} stroke={C.black} strokeWidth="3" />
-          <rect x="88" y="84" width="24" height="50" rx="4" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="84" x2="100" y2="100" stroke={C.black} strokeWidth="3" />
-          <circle cx="100" cy="100" r="6" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <line x1="100" y1="134" x2="88" y2="170" stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="134" x2="112" y2="170" stroke={C.black} strokeWidth="3" />
-        </svg>
-      );
-
-    /* ── Main Work: Group 2 ── */
-    case "fri-reverse-lunge":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.green} />
-          <rect x="0" y="170" width="200" height="30" fill={C.black} />
-          <circle cx="100" cy="40" r="16" fill={C.yellow} stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="56" x2="100" y2="110" stroke={C.black} strokeWidth="4" />
-          <line x1="100" y1="80" x2="70" y2="65" stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="80" x2="130" y2="65" stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="110" x2="75" y2="170" stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="110" x2="130" y2="145" stroke={C.black} strokeWidth="3" />
-          <line x1="130" y1="145" x2="140" y2="170" stroke={C.black} strokeWidth="3" />
-          <circle cx="100" cy="25" r="5" fill={C.red} stroke={C.black} strokeWidth="2" />
-        </svg>
-      );
-    case "fri-lateral-band-walk-main":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.orange} />
-          <rect x="0" y="170" width="200" height="30" fill={C.black} />
-          <line x1="30" y1="130" x2="170" y2="130" stroke={C.yellow} strokeWidth="6" />
-          <circle cx="50" cy="130" r="18" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <circle cx="100" cy="130" r="18" fill={C.red} stroke={C.black} strokeWidth="3" />
-          <circle cx="150" cy="130" r="18" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <polygon points="170,95 185,110 170,125" fill={C.black} />
-          <polygon points="30,95 15,110 30,125" fill={C.black} />
-          <line x1="50" y1="148" x2="50" y2="170" stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="148" x2="100" y2="170" stroke={C.black} strokeWidth="3" />
-          <line x1="150" y1="148" x2="150" y2="170" stroke={C.black} strokeWidth="3" />
-        </svg>
-      );
-    case "fri-side-plank-dip":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.blue} />
-          <rect x="0" y="160" width="200" height="40" fill={C.yellow} />
-          <line x1="0" y1="160" x2="200" y2="160" stroke={C.black} strokeWidth="3" />
-          <line x1="40" y1="160" x2="160" y2="100" stroke={C.white} strokeWidth="14" />
-          <line x1="40" y1="160" x2="160" y2="100" stroke={C.black} strokeWidth="4" />
-          <circle cx="40" cy="160" r="8" fill={C.red} stroke={C.black} strokeWidth="2" />
-          <circle cx="160" cy="100" r="12" fill={C.red} stroke={C.black} strokeWidth="3" />
-          <path d="M 100 120 Q 100 145 100 155" fill="none" stroke={C.yellow} strokeWidth="4" strokeDasharray="5 5" />
-          <polygon points="95,150 100,162 105,150" fill={C.yellow} />
-        </svg>
-      );
-
-    /* ── Correctives & Accessories ── */
-    case "fri-band-eversion-corr":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.teal} />
-          <rect x="0" y="0" width="40" height="200" fill={C.black} />
-          <circle cx="110" cy="100" r="55" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <circle cx="110" cy="100" r="35" fill={C.orange} stroke={C.black} strokeWidth="3" />
-          <circle cx="110" cy="100" r="16" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <line x1="155" y1="80" x2="190" y2="80" stroke={C.black} strokeWidth="4" />
-          <line x1="155" y1="100" x2="190" y2="100" stroke={C.black} strokeWidth="4" />
-          <line x1="155" y1="120" x2="190" y2="120" stroke={C.black} strokeWidth="4" />
-        </svg>
-      );
-    case "fri-calf-raises":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.red} />
-          <rect x="0" y="140" width="200" height="20" fill={C.black} />
-          <rect x="65" y="60" width="30" height="80" rx="6" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <rect x="105" y="60" width="30" height="80" rx="6" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <polygon points="65,140 80,110 95,140" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <polygon points="105,140 120,110 135,140" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <line x1="100" y1="170" x2="100" y2="195" stroke={C.white} strokeWidth="4" />
-          <polygon points="92,188 100,200 108,188" fill={C.white} />
-        </svg>
-      );
-    case "fri-tib-raises":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.yellow} />
-          <rect x="160" y="0" width="40" height="200" fill={C.black} />
-          <line x1="160" y1="0" x2="160" y2="200" stroke={C.black} strokeWidth="3" />
-          <circle cx="80" cy="60" r="14" fill={C.red} stroke={C.black} strokeWidth="3" />
-          <line x1="80" y1="74" x2="80" y2="130" stroke={C.black} strokeWidth="4" />
-          <line x1="80" y1="130" x2="60" y2="180" stroke={C.black} strokeWidth="3" />
-          <line x1="80" y1="130" x2="100" y2="180" stroke={C.black} strokeWidth="3" />
-          <line x1="80" y1="100" x2="150" y2="85" stroke={C.black} strokeWidth="3" />
-          <polygon points="55,175 65,190 50,190" fill={C.blue} stroke={C.black} strokeWidth="2" />
-          <polygon points="95,175 105,190 90,190" fill={C.blue} stroke={C.black} strokeWidth="2" />
-          <polygon points="48,185 55,175 62,185" fill={C.blue} />
-          <polygon points="88,185 95,175 102,185" fill={C.blue} />
-        </svg>
-      );
-    case "fri-sl-balance":
+    case "sl-balance":
       return (
         <svg {...common}>
           <rect width="200" height="100" fill={C.white} />
-          <rect x="0" y="100" width="200" height="100" fill={C.blue} />
+          <rect x="0" y="100" width="200" height="100" fill={C.yellow} />
           <line x1="0" y1="100" x2="200" y2="100" stroke={C.black} strokeWidth="5" />
           <circle cx="100" cy="55" r="16" fill={C.red} stroke={C.black} strokeWidth="3" />
           <line x1="100" y1="71" x2="100" y2="130" stroke={C.black} strokeWidth="4" />
@@ -294,49 +171,126 @@ function ExerciseSVG({ id }: { id: string }) {
           <circle cx="135" cy="75" r="5" fill={C.red} stroke={C.black} strokeWidth="2" />
         </svg>
       );
-    case "fri-band-hip-march-corr":
-      return (
-        <svg {...common}>
-          <rect width="200" height="200" fill={C.green} />
-          <rect x="20" y="120" width="24" height="70" fill={C.white} stroke={C.black} strokeWidth="2" />
-          <rect x="55" y="100" width="24" height="90" fill={C.white} stroke={C.black} strokeWidth="2" />
-          <rect x="90" y="80" width="24" height="110" fill={C.white} stroke={C.black} strokeWidth="2" />
-          <rect x="125" y="60" width="24" height="130" fill={C.yellow} stroke={C.black} strokeWidth="2" />
-          <rect x="160" y="40" width="24" height="150" fill={C.white} stroke={C.black} strokeWidth="2" />
-          <ellipse cx="32" cy="115" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
-          <ellipse cx="67" cy="95" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
-          <ellipse cx="102" cy="75" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
-          <ellipse cx="137" cy="55" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
-          <ellipse cx="172" cy="35" rx="15" ry="8" fill={C.red} stroke={C.black} strokeWidth="2" />
-        </svg>
-      );
-    case "fri-adduction-raises":
-      return (
-        <svg {...common}>
-          <rect width="200" height="80" fill={C.white} />
-          <rect x="0" y="80" width="200" height="120" fill={C.orange} />
-          <line x1="0" y1="80" x2="200" y2="80" stroke={C.black} strokeWidth="3" />
-          <line x1="30" y1="130" x2="170" y2="130" stroke={C.black} strokeWidth="3" />
-          <line x1="30" y1="130" x2="30" y2="170" stroke={C.black} strokeWidth="3" />
-          <line x1="170" y1="130" x2="170" y2="100" stroke={C.black} strokeWidth="3" />
-          <polygon points="162,105 170,90 178,105" fill={C.black} />
-          <circle cx="100" cy="50" r="24" fill={C.yellow} stroke={C.black} strokeWidth="3" />
-        </svg>
-      );
-    case "fri-lateral-band-walk-corr":
+    case "sl-rdl-reach":
       return (
         <svg {...common}>
           <rect width="200" height="200" fill={C.yellow} />
+          <path d="M 30 180 Q 60 140 80 160 Q 100 180 120 120 Q 140 60 170 30" fill="none" stroke={C.white} strokeWidth="18" />
+          <path d="M 30 180 Q 60 140 80 160 Q 100 180 120 120 Q 140 60 170 30" fill="none" stroke={C.black} strokeWidth="4" />
+          <circle cx="120" cy="105" r="8" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="113" x2="120" y2="140" stroke={C.black} strokeWidth="3" />
+          <line x1="120" y1="125" x2="105" y2="115" stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="125" x2="135" y2="115" stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="140" x2="110" y2="160" stroke={C.black} strokeWidth="2" />
+          <line x1="120" y1="140" x2="130" y2="155" stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "a-skip":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.red} />
+          <rect x="0" y="175" width="200" height="25" fill={C.black} />
+          <path d="M 10 170 Q 30 130 50 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 50 170 Q 70 120 90 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 90 170 Q 110 110 130 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 130 170 Q 150 120 170 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <path d="M 170 170 Q 190 130 200 170" fill="none" stroke={C.yellow} strokeWidth="5" />
+          <circle cx="160" cy="35" r="25" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "b-skip":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.teal} />
+          <rect x="0" y="0" width="200" height="20" fill={C.black} />
+          <rect x="0" y="180" width="200" height="20" fill={C.black} />
+          <path d="M 0 100 Q 25 50 50 100 Q 75 150 100 100 Q 125 50 150 100 Q 175 150 200 100" fill="none" stroke={C.yellow} strokeWidth="7" />
+          <path d="M 0 110 Q 25 150 50 110 Q 75 70 100 110 Q 125 150 150 110 Q 175 70 200 110" fill="none" stroke={C.white} strokeWidth="4" />
+        </svg>
+      );
+    case "high-knees":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.orange} />
           <rect x="0" y="170" width="200" height="30" fill={C.black} />
-          <line x1="20" y1="120" x2="180" y2="120" stroke={C.red} strokeWidth="6" />
-          <circle cx="40" cy="120" r="16" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <circle cx="100" cy="120" r="16" fill={C.blue} stroke={C.black} strokeWidth="3" />
-          <circle cx="160" cy="120" r="16" fill={C.white} stroke={C.black} strokeWidth="3" />
-          <polygon points="175,90 190,105 175,120" fill={C.black} />
-          <polygon points="25,90 10,105 25,120" fill={C.black} />
-          <line x1="40" y1="136" x2="40" y2="170" stroke={C.black} strokeWidth="3" />
-          <line x1="100" y1="136" x2="100" y2="170" stroke={C.black} strokeWidth="3" />
-          <line x1="160" y1="136" x2="160" y2="170" stroke={C.black} strokeWidth="3" />
+          <line x1="0" y1="170" x2="200" y2="170" stroke={C.black} strokeWidth="3" />
+          <ellipse cx="30" cy="110" rx="14" ry="30" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="70" cy="90" rx="14" ry="35" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="110" cy="100" rx="14" ry="32" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="150" cy="85" rx="14" ry="38" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <ellipse cx="185" cy="105" rx="14" ry="30" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <circle cx="30" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="70" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="110" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="150" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+          <circle cx="185" cy="165" r="7" fill={C.red} stroke={C.black} strokeWidth="2" />
+        </svg>
+      );
+    case "easy-run":
+      return (
+        <svg {...common}>
+          <rect width="200" height="100" fill={C.white} />
+          <rect x="0" y="100" width="200" height="100" fill={C.blue} />
+          <line x1="0" y1="100" x2="200" y2="100" stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="60" fill={C.orange} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="40" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <circle cx="100" cy="100" r="20" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "cooldown-walk":
+      return (
+        <svg {...common}>
+          <rect width="200" height="120" fill={C.blue} />
+          <rect x="0" y="120" width="200" height="80" fill={C.yellow} />
+          <line x1="0" y1="120" x2="200" y2="120" stroke={C.black} strokeWidth="3" />
+          <line x1="80" y1="50" x2="80" y2="120" stroke={C.black} strokeWidth="4" />
+          <path d="M 40 50 Q 80 10 120 50" fill={C.red} stroke={C.black} strokeWidth="3" />
+          <path d="M 40 50 Q 80 20 120 50" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <circle cx="155" cy="40" r="22" fill={C.yellow} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "foam-roll-quads":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.green} />
+          <rect x="25" y="50" width="150" height="24" rx="12" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <rect x="25" y="90" width="150" height="24" rx="12" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <rect x="25" y="130" width="150" height="24" rx="12" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <line x1="80" y1="170" x2="120" y2="170" stroke={C.black} strokeWidth="5" />
+          <polygon points="92,178 100,195 108,178" fill={C.black} />
+        </svg>
+      );
+    case "foam-roll-calves":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <rect x="55" y="20" width="28" height="160" rx="14" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <rect x="117" y="20" width="28" height="160" rx="14" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <line x1="45" y1="60" x2="155" y2="60" stroke={C.yellow} strokeWidth="4" />
+          <line x1="45" y1="95" x2="155" y2="95" stroke={C.yellow} strokeWidth="4" />
+          <line x1="45" y1="130" x2="155" y2="130" stroke={C.yellow} strokeWidth="4" />
+          <line x1="45" y1="160" x2="155" y2="160" stroke={C.yellow} strokeWidth="4" />
+        </svg>
+      );
+    case "hip-flexor-stretch":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.yellow} />
+          <polygon points="100,20 30,170 170,170" fill={C.white} stroke={C.black} strokeWidth="3" />
+          <polygon points="100,55 55,150 145,150" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <circle cx="100" cy="40" r="14" fill={C.red} stroke={C.black} strokeWidth="3" />
+        </svg>
+      );
+    case "calf-stretch":
+      return (
+        <svg {...common}>
+          <rect width="200" height="200" fill={C.blue} />
+          <rect x="20" y="150" width="32" height="30" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="52" y="130" width="32" height="50" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="84" y="110" width="32" height="70" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="116" y="90" width="32" height="90" fill={C.white} stroke={C.black} strokeWidth="2" />
+          <rect x="148" y="70" width="32" height="110" fill={C.yellow} stroke={C.black} strokeWidth="2" />
+          <circle cx="165" cy="35" r="20" fill={C.yellow} stroke={C.black} strokeWidth="3" />
         </svg>
       );
     default:
@@ -357,7 +311,7 @@ function daysToRace(): number {
 }
 
 /* ───────────────────────── MAIN COMPONENT ───────────────────────── */
-export default function FridayWorkoutPage() {
+export default function ThursdayWorkoutPage() {
   const [checks, setChecks] = useState<CheckState>({});
   const [focusIdx, setFocusIdx] = useState<number | null>(null);
   const [showTip, setShowTip] = useState(false);
@@ -509,7 +463,7 @@ export default function FridayWorkoutPage() {
                   fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily, color: C.black,
                 }}
               >
-                ← Previous
+                &larr; Previous
               </button>
             )}
             {focusIdx < EXERCISES.length - 1 ? (
@@ -521,7 +475,7 @@ export default function FridayWorkoutPage() {
                   fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily, color: C.black,
                 }}
               >
-                Next →
+                Next &rarr;
               </button>
             ) : (
               <button
@@ -532,7 +486,7 @@ export default function FridayWorkoutPage() {
                   fontSize: 16, fontWeight: 700, cursor: "pointer", fontFamily, color: C.white,
                 }}
               >
-                Done →
+                Done &rarr;
               </button>
             )}
           </div>
@@ -546,11 +500,13 @@ export default function FridayWorkoutPage() {
     <div style={{ background: C.yellow, minHeight: "100vh", fontFamily, paddingBottom: allDone ? 80 : 20 }}>
       {/* HEADER */}
       <header style={{ background: C.yellow, borderBottom: `4px solid ${C.black}`, padding: "16px 16px 12px" }}>
-        <Link href="/workouts" style={{ textDecoration: "none", color: C.black, fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>&#8592; Workouts</Link>
+        <Link href="/workouts" style={{ textDecoration: "none", color: C.black, fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>
+          &#8592; Workouts
+        </Link>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: C.black, margin: 0, fontFamily }}>Friday</h1>
-            <p style={{ fontSize: 14, fontWeight: 600, color: C.black, margin: "2px 0 0", fontFamily }}>Lower Strength B</p>
+            <h1 style={{ fontSize: 28, fontWeight: 800, color: C.black, margin: 0, fontFamily }}>Thursday</h1>
+            <p style={{ fontSize: 14, fontWeight: 600, color: C.black, margin: "2px 0 0", fontFamily }}>Run Skill Day</p>
           </div>
           {/* Race countdown pill */}
           <div style={{
@@ -562,7 +518,7 @@ export default function FridayWorkoutPage() {
           </div>
         </div>
 
-        {/* Section pills */}
+        {/* Section pills — BUTTONS with navigation */}
         <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
           {SECTIONS.map((s) => {
             const done = isSectionDone(s);
