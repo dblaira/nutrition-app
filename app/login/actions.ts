@@ -23,6 +23,13 @@ export async function login(formData: FormData) {
     redirect("/");
 }
 
+export async function signout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    revalidatePath("/", "layout");
+    redirect("/login");
+}
+
 export async function signup(formData: FormData) {
     const supabase = createClient();
 

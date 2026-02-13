@@ -1,12 +1,183 @@
-import { Dumbbell, Flame, Utensils } from "lucide-react";
+import { Dumbbell, Utensils, LogOut, Droplets } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { signout } from "@/app/login/actions";
 
+/* ═══════════════════════════════════════════════════════════
+   RESORT OPTIMISM PALETTE
+   Warm, golden, intentional — poster confidence
+   ═══════════════════════════════════════════════════════════ */
+const C = {
+  sun: "#F2C744",
+  sunLight: "#F7DC6F",
+  sunPale: "#FFF3C4",
+  terra: "#D4654A",
+  terraLight: "#E8896F",
+  ocean: "#2B7FB5",
+  oceanLight: "#5DADE2",
+  sand: "#FAF0DB",
+  cream: "#FFFDF5",
+  charcoal: "#2C2C2C",
+  warmGray: "#8C7B6B",
+  white: "#FFFFFF",
+  green: "#27AE60",
+} as const;
+
+const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`;
+
+/* ═══════════════════════════════════════════════════════════ */
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+/* ── Massive Calorie Ring — Optimism Sun Poster Style ── */
+function CalorieRing({
+  consumed,
+  goal,
+}: {
+  consumed: number;
+  goal: number;
+}) {
+  const size = 300;
+  const strokeWidth = 18;
+  const r = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * r;
+  const pct = Math.min(consumed / goal, 1);
+  const offset = circumference * (1 - pct);
+  const remaining = Math.max(goal - consumed, 0);
+  const pctDisplay = Math.round(pct * 100);
+
+  return (
+    <div style={{ position: "relative", width: size, height: size + 60 }}>
+      {/* Decorative concentric glow rings — inspired by the sunset poster */}
+      <svg
+        width={size}
+        height={size}
+        style={{ position: "absolute", top: 0, left: 0 }}
+      >
+        <circle cx={size / 2} cy={size / 2} r={size / 2 - 2} fill={C.sunPale} opacity={0.35} />
+        <circle cx={size / 2} cy={size / 2} r={size / 2 - 22} fill={C.sunLight} opacity={0.25} />
+        <circle cx={size / 2} cy={size / 2} r={size / 2 - 44} fill={C.sun} opacity={0.18} />
+      </svg>
+
+      {/* Progress ring */}
+      <svg
+        width={size}
+        height={size}
+        style={{ position: "relative", transform: "rotate(-90deg)" }}
+      >
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={C.terra + "18"}
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          fill="none"
+          stroke={C.terra}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+        />
+      </svg>
+
+      {/* Center content */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: size,
+          height: size,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 64,
+            fontWeight: 800,
+            color: C.charcoal,
+            fontFamily,
+            lineHeight: 1,
+          }}
+        >
+          {remaining}
+        </span>
+        <span
+          style={{
+            fontSize: 16,
+            fontWeight: 600,
+            color: C.warmGray,
+            fontFamily,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            marginTop: 4,
+          }}
+        >
+          cal remaining
+        </span>
+      </div>
+
+      {/* Half-circle motif below — the Optimism sun mark */}
+      <svg
+        width={200}
+        height={60}
+        viewBox="0 0 200 60"
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
+        <path
+          d="M 10 60 A 90 90 0 0 1 190 60"
+          fill={C.white}
+          opacity={0.7}
+        />
+      </svg>
+
+      {/* Percentage in the half-circle */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 12,
+          left: "50%",
+          transform: "translateX(-50%)",
+          fontSize: 18,
+          fontWeight: 800,
+          color: C.charcoal,
+          fontFamily,
+          opacity: 0.5,
+        }}
+      >
+        {pctDisplay}%
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN PAGE — Server Component
+   ═══════════════════════════════════════════════════════════ */
 export default async function Home() {
   const supabase = createClient();
 
-  // 1. Check Auth
+  /* ── Auth ── */
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -15,7 +186,7 @@ export default async function Home() {
     return redirect("/login");
   }
 
-  // 2. Fetch Profile (or create default if missing)
+  /* ── Profile ── */
   let { data: profile } = await supabase
     .from("profiles")
     .select("*")
@@ -23,7 +194,6 @@ export default async function Home() {
     .single();
 
   if (!profile) {
-    // Lazy initialization for new users
     const { data: newProfile, error } = await supabase
       .from("profiles")
       .insert({
@@ -33,16 +203,16 @@ export default async function Home() {
       })
       .select()
       .single();
-
     if (!error) profile = newProfile;
   }
 
-  // 3. Fetch Today's Data
+  /* ── Today's meals ── */
   const today = new Date().toISOString().split("T")[0];
 
   const { data: meals } = await supabase
     .from("meals")
-    .select(`
+    .select(
+      `
       id,
       name,
       meal_entries (
@@ -56,15 +226,19 @@ export default async function Home() {
           fat
         )
       )
-    `)
+    `
+    )
     .eq("user_id", user.id)
     .eq("date", today);
 
-
-
-  // Calculate Totals
+  /* ── Calculate totals ── */
   let consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-  const recentActivity: { id: string; name: string; calories: number; meal: string }[] = [];
+  const recentActivity: {
+    id: string;
+    name: string;
+    calories: number;
+    meal: string;
+  }[] = [];
 
   interface MealEntry {
     id: string;
@@ -75,7 +249,7 @@ export default async function Home() {
       protein: number;
       carbs: number;
       fat: number;
-    } | null; // foods can be null if joined incorrectly, though here it shouldn't be
+    } | null;
   }
 
   interface Meal {
@@ -88,32 +262,26 @@ export default async function Home() {
     meal.meal_entries.forEach((entry) => {
       const food = entry.foods;
       if (!food) return;
-
-      const multiplier = entry.quantity;
-
-      consumed.calories += food.calories * multiplier;
-      consumed.protein += food.protein * multiplier;
-      consumed.carbs += food.carbs * multiplier;
-      consumed.fat += food.fat * multiplier;
-
+      const m = entry.quantity;
+      consumed.calories += food.calories * m;
+      consumed.protein += food.protein * m;
+      consumed.carbs += food.carbs * m;
+      consumed.fat += food.fat * m;
       recentActivity.push({
         id: entry.id,
         name: food.name,
-        calories: Math.round(food.calories * multiplier),
+        calories: Math.round(food.calories * m),
         meal: meal.name,
       });
     });
   });
 
-  // Round totals
   consumed = {
     calories: Math.round(consumed.calories),
     protein: Math.round(consumed.protein),
     carbs: Math.round(consumed.carbs),
     fat: Math.round(consumed.fat),
   };
-
-  const burned = 0; // We'll hook this up to 'daily_activity' later
 
   const goals = {
     calories: profile?.calorie_goal || 2400,
@@ -122,101 +290,607 @@ export default async function Home() {
     fat: profile?.fat_goal || 80,
   };
 
-  const remaining = (goals.calories + burned) - consumed.calories;
+  const firstName =
+    profile?.full_name?.split(" ")[0] ||
+    profile?.email?.[0]?.toUpperCase() ||
+    "Friend";
 
+  /* Macro carousel data */
+  const macros = [
+    {
+      label: "Protein",
+      consumed: consumed.protein,
+      goal: goals.protein,
+      unit: "g",
+      bg: C.ocean,
+      bgLight: C.oceanLight,
+      textColor: C.white,
+      barBg: "rgba(255,255,255,0.2)",
+      barFill: C.white,
+    },
+    {
+      label: "Carbs",
+      consumed: consumed.carbs,
+      goal: goals.carbs,
+      unit: "g",
+      bg: C.sun,
+      bgLight: C.sunLight,
+      textColor: C.charcoal,
+      barBg: "rgba(0,0,0,0.08)",
+      barFill: C.charcoal,
+    },
+    {
+      label: "Fat",
+      consumed: consumed.fat,
+      goal: goals.fat,
+      unit: "g",
+      bg: C.terra,
+      bgLight: C.terraLight,
+      textColor: C.white,
+      barBg: "rgba(255,255,255,0.2)",
+      barFill: C.white,
+    },
+  ];
+
+  /* ═══════════════════════ RENDER ═══════════════════════ */
   return (
-    <main className="min-h-screen p-4 md:p-8 space-y-8 max-w-md mx-auto md:max-w-4xl">
-      {/* Header */}
-      <header className="flex justify-between items-center">
+    <div
+      style={{
+        minHeight: "100vh",
+        background: `linear-gradient(180deg, ${C.sun} 0%, ${C.sunLight} 30%, ${C.sand} 55%, ${C.cream} 100%)`,
+        fontFamily,
+        overflowX: "hidden",
+        paddingBottom: 60,
+      }}
+    >
+      {/* ══════════ TOP BAR ══════════ */}
+      <div
+        style={{
+          padding: "18px 20px 0",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
         <div>
-          <h1 className="text-3xl font-display font-bold text-white">Today</h1>
-          <p className="text-muted-foreground">
-            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 36,
+              fontWeight: 800,
+              color: C.charcoal,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Optimism.
+          </h1>
+          <p
+            style={{
+              margin: "4px 0 0",
+              fontSize: 18,
+              color: C.charcoal,
+              opacity: 0.5,
+              fontWeight: 500,
+            }}
+          >
+            {getGreeting()}, {firstName}
           </p>
         </div>
-        <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/20">
-          {profile?.email?.[0].toUpperCase() || "U"}
-        </div>
-      </header>
 
-      {/* Main Stats Circle */}
-      <section className="relative flex flex-col items-center justify-center py-8">
-        <div className="w-64 h-64 rounded-full border-8 border-secondary flex flex-col items-center justify-center relative">
-          {/* Dynamic Progress Border would go here */}
-          <div className="absolute inset-0 rounded-full border-8 border-primary border-t-transparent rotate-45 opacity-50" />
-          <span className="text-5xl font-display font-bold text-white">{remaining}</span>
-          <span className="text-sm text-muted-foreground uppercase tracking-wider mt-1">Remaining</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-8 mt-8 w-full max-w-sm text-center">
-          <div>
-            <div className="text-2xl font-bold text-emerald-400">
-              {goals.protein - consumed.protein}g
-            </div>
-            <div className="text-xs text-muted-foreground">Protein</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-blue-400">
-              {goals.carbs - consumed.carbs}g
-            </div>
-            <div className="text-xs text-muted-foreground">Carbs</div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold text-purple-400">
-              {goals.fat - consumed.fat}g
-            </div>
-            <div className="text-xs text-muted-foreground">Fat</div>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-4">
-        <Link href="/log-food" className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
-          <div className="h-10 w-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Utensils size={20} />
-          </div>
-          <span className="font-medium">Log Food</span>
-        </Link>
-        <Link href="/workouts" className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
-          <div className="h-10 w-10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: "rgba(155, 27, 48, 0.2)", color: "#9b1b30" }}>
-            <Dumbbell size={20} />
-          </div>
-          <span className="font-medium">Workouts</span>
-        </Link>
-        <button className="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/10 transition-colors group">
-          <div className="h-10 w-10 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Flame size={20} />
-          </div>
-          <span className="font-medium">Burn Calories</span>
-        </button>
+        {/* ── LOGOUT — top right, always visible ── */}
+        <form action={signout}>
+          <button
+            type="submit"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: C.charcoal + "14",
+              border: "none",
+              borderRadius: 14,
+              padding: "12px 18px",
+              color: C.charcoal,
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily,
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+            }}
+          >
+            <LogOut size={18} />
+            Log out
+          </button>
+        </form>
       </div>
 
-      {/* Recent Activity */}
-      <section className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Recent</h2>
-          <button className="text-primary text-sm hover:underline">View All</button>
-        </div>
+      {/* ── Date — large, obvious ── */}
+      <div style={{ padding: "4px 20px 0" }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 16,
+            color: C.charcoal,
+            opacity: 0.4,
+            fontWeight: 500,
+          }}
+        >
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          })}
+        </p>
+      </div>
 
-        {recentActivity.length > 0 ? (
-          <div className="space-y-2">
-            {recentActivity.map((item) => (
-              <div key={item.id} className="glass-card p-4 rounded-xl flex justify-between items-center">
-                <div>
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.meal}</p>
-                </div>
-                <span className="font-bold">{item.calories} cal</span>
+      {/* ══════════ CALORIE HERO — poster-scale ══════════ */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: "36px 20px 0",
+        }}
+      >
+        <CalorieRing consumed={consumed.calories} goal={goals.calories} />
+
+        {/* Big stat row */}
+        <div
+          style={{
+            display: "flex",
+            gap: 40,
+            marginTop: 20,
+            textAlign: "center",
+          }}
+        >
+          {[
+            { label: "Consumed", value: consumed.calories },
+            { label: "Goal", value: goals.calories },
+          ].map((s) => (
+            <div key={s.label}>
+              <div
+                style={{
+                  fontSize: 32,
+                  fontWeight: 800,
+                  color: C.charcoal,
+                  fontFamily,
+                  lineHeight: 1,
+                }}
+              >
+                {s.value}
               </div>
-            ))}
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: C.warmGray,
+                  fontFamily,
+                  marginTop: 4,
+                }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ══════════ MACRO CAROUSEL — swipe right ══════════ */}
+      <div style={{ marginTop: 40 }}>
+        <h2
+          style={{
+            fontSize: 28,
+            fontWeight: 800,
+            color: C.charcoal,
+            margin: "0 0 16px",
+            padding: "0 20px",
+            fontFamily,
+          }}
+        >
+          Macros
+        </h2>
+
+        <div
+          className="hide-scrollbar"
+          style={{
+            display: "flex",
+            overflowX: "auto",
+            scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch",
+            gap: 14,
+            paddingLeft: 20,
+            paddingRight: 20,
+          }}
+        >
+          {macros.map((macro) => {
+            const pct = Math.min(
+              Math.round((macro.consumed / macro.goal) * 100),
+              100
+            );
+            return (
+              <div
+                key={macro.label}
+                style={{
+                  scrollSnapAlign: "start",
+                  flexShrink: 0,
+                  width: "78vw",
+                  minHeight: 200,
+                  background: macro.bg,
+                  borderRadius: 24,
+                  padding: "28px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  position: "relative",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Decorative circle — poster motif */}
+                <div
+                  style={{
+                    position: "absolute",
+                    right: -30,
+                    top: -30,
+                    width: 160,
+                    height: 160,
+                    borderRadius: "50%",
+                    background: macro.bgLight,
+                    opacity: 0.3,
+                  }}
+                />
+
+                <div style={{ position: "relative", zIndex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 700,
+                      color: macro.textColor,
+                      fontFamily,
+                      opacity: 0.7,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {macro.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 56,
+                      fontWeight: 800,
+                      color: macro.textColor,
+                      fontFamily,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {macro.consumed}
+                    <span style={{ fontSize: 24, fontWeight: 600, opacity: 0.6 }}>
+                      {macro.unit}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: macro.textColor,
+                      fontFamily,
+                      opacity: 0.5,
+                      marginTop: 4,
+                    }}
+                  >
+                    of {macro.goal}
+                    {macro.unit} goal
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div style={{ position: "relative", zIndex: 1, marginTop: 20 }}>
+                  <div
+                    style={{
+                      height: 10,
+                      background: macro.barBg,
+                      borderRadius: 5,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${pct}%`,
+                        height: "100%",
+                        background: macro.barFill,
+                        borderRadius: 5,
+                      }}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      textAlign: "right",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: macro.textColor,
+                      fontFamily,
+                      marginTop: 6,
+                      opacity: 0.6,
+                    }}
+                  >
+                    {pct}%
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ══════════ QUICK ACTIONS — oversized icons, no labels ══════════ */}
+      <div
+        style={{
+          padding: "40px 20px 0",
+          display: "flex",
+          gap: 12,
+        }}
+      >
+        {(
+          [
+            {
+              label: "Log Food",
+              icon: <Utensils size={120} strokeWidth={1.2} />,
+              bg: C.ocean,
+              color: C.white,
+              href: "/log-food",
+            },
+            {
+              label: "Workouts",
+              icon: <Dumbbell size={120} strokeWidth={1.2} />,
+              bg: C.terra,
+              color: C.white,
+              href: "/workouts",
+            },
+            {
+              label: "Water",
+              icon: <Droplets size={120} strokeWidth={1.2} />,
+              bg: C.green,
+              color: C.white,
+              href: "#",
+            },
+          ] as const
+        ).map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            aria-label={item.label}
+            style={{
+              flex: 1,
+              background: item.bg,
+              borderRadius: 22,
+              height: 120,
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "center",
+              textDecoration: "none",
+              overflow: "hidden",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
+              position: "relative",
+            }}
+          >
+            <div
+              style={{
+                color: item.color,
+                opacity: 0.85,
+                marginBottom: -28,
+              }}
+            >
+              {item.icon}
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* ══════════ TODAY'S WORKOUT — bold dark card ══════════ */}
+      <div style={{ padding: "28px 20px 0" }}>
+        <Link href="/workouts" style={{ textDecoration: "none" }}>
+          <div
+            style={{
+              background: C.charcoal,
+              borderRadius: 24,
+              padding: "32px 28px",
+              boxShadow: "0 6px 30px rgba(0,0,0,0.15)",
+              cursor: "pointer",
+              position: "relative",
+              overflow: "hidden",
+              minHeight: 180,
+            }}
+          >
+            {/* Decorative */}
+            <div
+              style={{
+                position: "absolute",
+                right: -30,
+                top: -30,
+                width: 160,
+                height: 160,
+                borderRadius: "50%",
+                background: C.terra,
+                opacity: 0.12,
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                right: 20,
+                bottom: -20,
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                background: C.sun,
+                opacity: 0.08,
+              }}
+            />
+
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: C.sun,
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                  fontFamily,
+                }}
+              >
+                Today&apos;s Training
+              </div>
+              <h3
+                style={{
+                  margin: "0 0 6px",
+                  fontSize: 32,
+                  fontWeight: 800,
+                  color: C.cream,
+                  fontFamily,
+                }}
+              >
+                Training Week
+              </h3>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 16,
+                  color: C.cream,
+                  opacity: 0.5,
+                  fontFamily,
+                }}
+              >
+                View your full workout schedule
+              </p>
+
+              <div
+                style={{
+                  marginTop: 24,
+                  display: "flex",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 700,
+                    color: C.sun,
+                    fontFamily,
+                  }}
+                >
+                  Open workouts &rarr;
+                </span>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="p-8 text-center text-muted-foreground glass-card rounded-xl">
-            No activity yet today.
-          </div>
-        )}
-      </section>
-    </main>
+        </Link>
+      </div>
+
+      {/* ══════════ RECENT MEALS — big entries ══════════ */}
+      <div style={{ padding: "36px 20px 0" }}>
+        <h2
+          style={{
+            fontSize: 28,
+            fontWeight: 800,
+            color: C.charcoal,
+            margin: "0 0 16px",
+            fontFamily,
+          }}
+        >
+          Today&apos;s Meals
+        </h2>
+
+        <div
+          style={{
+            background: C.white,
+            borderRadius: 24,
+            padding: 24,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
+          }}
+        >
+          {recentActivity.length > 0 ? (
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: 12 }}
+            >
+              {recentActivity.map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "16px 18px",
+                    background: C.sand,
+                    borderRadius: 16,
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: C.charcoal,
+                        fontFamily,
+                      }}
+                    >
+                      {item.name}
+                    </p>
+                    <p
+                      style={{
+                        margin: "4px 0 0",
+                        fontSize: 14,
+                        color: C.warmGray,
+                        fontFamily,
+                      }}
+                    >
+                      {item.meal}
+                    </p>
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 800,
+                      color: C.terra,
+                      fontFamily,
+                    }}
+                  >
+                    {item.calories}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div
+              style={{
+                padding: "36px 0",
+                textAlign: "center",
+                fontFamily,
+              }}
+            >
+              <p
+                style={{
+                  fontSize: 18,
+                  color: C.warmGray,
+                  margin: "0 0 12px",
+                }}
+              >
+                No meals logged yet today.
+              </p>
+              <Link
+                href="/log-food"
+                style={{
+                  color: C.ocean,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  fontSize: 18,
+                }}
+              >
+                Log your first meal &rarr;
+              </Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

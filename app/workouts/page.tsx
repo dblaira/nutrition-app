@@ -3,42 +3,37 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-/* ───────────────────────── PALETTE ───────────────────────── */
+/* ───────────────────────── PALETTE — PRIMARY ONLY ───────────────────────── */
 const C = {
+  red: "#CC2936",
   blue: "#0047AB",
   yellow: "#F5C518",
-  red: "#CC2936",
-  white: "#FFFFFF",
   black: "#1A1A1A",
-  orange: "#E8751A",
-  green: "#1B8C4E",
-  teal: "#008080",
+  white: "#FFFFFF",
 } as const;
 
 const fontFamily = `var(--font-outfit), 'Avenir Next', 'Helvetica Neue', sans-serif`;
 
 /* ───────────────────────── DAY CONFIGS ───────────────────────── */
+/* Color logic: run days = red, lower days = yellow, upper/cross = blue, rest = white */
 interface DayConfig {
   key: string;
   label: string;
   type: string;
-  subtitle: string;
-  sections: string[];
+  bg: string;
+  textColor: string;
   storageKey: string | null;
-  accent: string;
 }
 
 const DAYS: DayConfig[] = [
-  { key: "sunday", label: "Sunday", type: "Long Run", subtitle: "10mi Zone 2 + Recovery", sections: ["Activation", "Run", "Recovery"], storageKey: "optimism-pop-sunday-v1", accent: C.orange },
-  { key: "monday", label: "Monday", type: "Cross-Train + Upper A", subtitle: "Bike + Push/Pull Complex", sections: ["Cardio", "Complex 1", "Complex 2", "Finishers"], storageKey: "optimism-pop-monday-v1", accent: C.blue },
-  { key: "tuesday", label: "Tuesday", type: "Lower Strength A", subtitle: "Squats · RDLs · Rotations", sections: ["Warm-Up", "Main Strength", "Accessories"], storageKey: "optimism-pop-tuesday-v1", accent: C.red },
-  { key: "wednesday", label: "Wednesday", type: "Cross-Train + Upper B", subtitle: "Bike/Run + Push/Pull", sections: ["Cardio", "Push/Pull A", "Push/Pull B", "Finishers"], storageKey: "optimism-pop-wednesday-v1", accent: C.teal },
-  { key: "thursday", label: "Thursday", type: "Run Skill Day", subtitle: "Drills + Zone 2 + Recovery", sections: ["Activation", "Drills", "Run", "Recovery"], storageKey: "optimism-pop-v1", accent: C.yellow },
-  { key: "friday", label: "Friday", type: "Lower Strength B", subtitle: "Goblet Squat · SL RDL · Correctives", sections: ["Warm-Up", "Group 1", "Group 2", "Correctives"], storageKey: "optimism-pop-friday-v1", accent: C.green },
-  { key: "saturday", label: "Saturday", type: "Rest Day", subtitle: "Recovery & Restoration", sections: [], storageKey: null, accent: C.white },
+  { key: "sunday",    label: "Sunday",    type: "Long Run",             bg: C.red,    textColor: C.white, storageKey: "optimism-pop-sunday-v1" },
+  { key: "monday",    label: "Monday",    type: "Upper A + Bike",       bg: C.blue,   textColor: C.white, storageKey: "optimism-pop-monday-v1" },
+  { key: "tuesday",   label: "Tuesday",   type: "Lower Strength A",     bg: C.yellow, textColor: C.black, storageKey: "optimism-pop-tuesday-v1" },
+  { key: "wednesday", label: "Wednesday", type: "Upper B + Cardio",     bg: C.blue,   textColor: C.white, storageKey: "optimism-pop-wednesday-v1" },
+  { key: "thursday",  label: "Thursday",  type: "Run Skills",           bg: C.red,    textColor: C.white, storageKey: "optimism-pop-v1" },
+  { key: "friday",    label: "Friday",    type: "Lower Strength B",     bg: C.yellow, textColor: C.black, storageKey: "optimism-pop-friday-v1" },
+  { key: "saturday",  label: "Saturday",  type: "Rest",                 bg: C.white,  textColor: C.black, storageKey: null },
 ];
-
-const WEEK_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
 
 /* ───────────────────────── HELPERS ───────────────────────── */
 function daysToRace(): number {
@@ -47,8 +42,51 @@ function daysToRace(): number {
   return Math.max(0, Math.ceil((race.getTime() - now.getTime()) / 86400000));
 }
 
-function getTodayIndex(): number {
-  return new Date().getDay();
+/* Decorative SVG shape per card — Lichtenstein pop art: bold, simple, primary */
+function CardShape({ bg }: { bg: string }) {
+  const light = "rgba(255,255,255,0.14)";
+  const dark = "rgba(0,0,0,0.08)";
+
+  if (bg === C.red) {
+    /* Bold concentric circles — Lichtenstein target */
+    return (
+      <svg style={{ position: "absolute", right: -20, top: "50%", transform: "translateY(-50%)", width: 180, height: 180 }} viewBox="0 0 200 200">
+        <circle cx="100" cy="100" r="95" fill={light} />
+        <circle cx="100" cy="100" r="60" fill={light} />
+        <circle cx="100" cy="100" r="28" fill={light} />
+      </svg>
+    );
+  }
+  if (bg === C.blue) {
+    /* Bold vertical bars — graphic, structural */
+    return (
+      <svg style={{ position: "absolute", right: 10, top: 0, width: 140, height: "100%", opacity: 1 }} viewBox="0 0 140 200" preserveAspectRatio="none">
+        <rect x="25" y="0" width="30" height="200" fill={light} />
+        <rect x="80" y="0" width="30" height="200" fill={light} />
+      </svg>
+    );
+  }
+  if (bg === C.yellow) {
+    /* Ben-Day dots — THE Lichtenstein signature */
+    return (
+      <svg style={{ position: "absolute", right: 0, top: 0, width: "100%", height: "100%", opacity: 1 }} viewBox="0 0 200 140" preserveAspectRatio="xMaxYMid slice">
+        {[0,1,2,3,4,5,6].map(row =>
+          [0,1,2,3,4,5,6,7,8].map(col => (
+            <circle key={`${row}-${col}`} cx={col * 26 + (row % 2 ? 13 : 0)} cy={row * 22 + 11} r="6" fill={dark} />
+          ))
+        )}
+      </svg>
+    );
+  }
+  if (bg === C.white) {
+    /* Single bold circle — clean, minimal */
+    return (
+      <svg style={{ position: "absolute", right: 20, top: "50%", transform: "translateY(-50%)", width: 90, height: 90 }} viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="45" fill="none" stroke={dark} strokeWidth="5" />
+      </svg>
+    );
+  }
+  return null;
 }
 
 /* ───────────────────────── MAIN ───────────────────────── */
@@ -75,147 +113,100 @@ export default function WorkoutsLandingPage() {
     setStarted(s);
   }, []);
 
-  const todayIdx = getTodayIndex();
-  const todayDay = DAYS[todayIdx];
+  const todayIdx = new Date().getDay();
 
   if (!mounted) {
-    return <div style={{ background: C.yellow, minHeight: "100vh" }} />;
+    return <div style={{ background: C.black, minHeight: "100vh" }} />;
   }
 
   return (
-    <div style={{ background: C.yellow, minHeight: "100vh", fontFamily, paddingBottom: 40 }}>
-      {/* ── HEADER ── */}
-      <header style={{ padding: "20px 16px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <h1 style={{ fontSize: 32, fontWeight: 800, color: C.black, margin: 0, fontFamily, letterSpacing: -0.5 }}>Training Week</h1>
-            <p style={{ fontSize: 13, fontWeight: 600, color: C.black, margin: "4px 0 0", fontFamily, opacity: 0.6 }}>OC Marathon Program</p>
-          </div>
-          <div style={{
-            background: C.black, borderRadius: 999, padding: "6px 14px",
-            display: "flex", flexDirection: "column", alignItems: "center",
-          }}>
-            <span style={{ fontSize: 24, fontWeight: 800, color: C.yellow, fontFamily, lineHeight: 1 }}>{daysToRace()}</span>
-            <span style={{ fontSize: 8, fontWeight: 700, color: C.white, fontFamily, letterSpacing: 1, textTransform: "uppercase" }}>DAYS TO RACE</span>
-          </div>
+    <div style={{ background: C.black, minHeight: "100vh", fontFamily, paddingBottom: 40 }}>
+      {/* ── HEADER — compact, stays out of the way ── */}
+      <header style={{ padding: "20px 16px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 10, background: C.white + "14", textDecoration: "none" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.yellow} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </Link>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: C.yellow, margin: 0, fontFamily, letterSpacing: -0.5 }}>Training Week</h1>
         </div>
-
-        {/* ── WEEK STRIP ── */}
         <div style={{
-          display: "flex", gap: 6, marginTop: 16, justifyContent: "center",
-          background: C.white, borderRadius: 999, padding: "8px 12px",
-          border: `3px solid ${C.black}`,
+          background: C.yellow, borderRadius: 999, padding: "4px 12px",
+          display: "flex", alignItems: "center", gap: 6,
         }}>
-          {WEEK_LETTERS.map((letter, i) => {
-            const isToday = i === todayIdx;
-            const isRest = i === 6;
-            const hasStarted = started[DAYS[i].key];
-            return (
-              <div
-                key={i}
-                style={{
-                  width: 36, height: 36, borderRadius: "50%",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 13, fontWeight: 800, fontFamily,
-                  background: isToday ? C.red : hasStarted ? C.green : "transparent",
-                  color: isToday || hasStarted ? C.white : isRest ? C.black + "40" : C.black,
-                  border: isToday ? `3px solid ${C.black}` : isRest ? `2px dashed ${C.black}30` : `2px solid transparent`,
-                  transition: "all 0.2s",
-                }}
-              >
-                {hasStarted && !isToday ? "\u2713" : letter}
-              </div>
-            );
-          })}
+          <span style={{ fontSize: 18, fontWeight: 800, color: C.black, fontFamily, lineHeight: 1 }}>{daysToRace()}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, color: C.black, fontFamily, letterSpacing: 0.5, textTransform: "uppercase", opacity: 0.6 }}>days</span>
         </div>
       </header>
 
-      {/* ── TODAY CARD (HERO) ── */}
-      <div style={{ padding: "0 12px" }}>
-        <Link href={`/workouts/${todayDay.key}`} style={{ textDecoration: "none" }}>
-          <div style={{
-            background: C.black, borderRadius: 18, padding: "24px 20px",
-            border: `4px solid ${C.black}`, position: "relative", overflow: "hidden",
-            marginBottom: 12, cursor: "pointer",
-          }}>
-            {/* Decorative circles */}
-            <div style={{ position: "absolute", right: -30, top: -30, width: 140, height: 140, borderRadius: "50%", background: todayDay.accent, opacity: 0.15 }} />
-            <div style={{ position: "absolute", right: 20, bottom: -20, width: 80, height: 80, borderRadius: "50%", background: C.yellow, opacity: 0.08 }} />
-
-            <div style={{ position: "relative", zIndex: 1 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: C.yellow, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6, fontFamily }}>
-                TODAY
-              </div>
-              <h2 style={{ fontSize: 26, fontWeight: 800, color: C.white, margin: "0 0 4px", fontFamily }}>{todayDay.label}</h2>
-              <p style={{ fontSize: 18, fontWeight: 700, color: C.white, margin: "0 0 4px", fontFamily, opacity: 0.9 }}>{todayDay.type}</p>
-              <p style={{ fontSize: 13, color: C.white, margin: 0, fontFamily, opacity: 0.5 }}>{todayDay.subtitle}</p>
-
-              {todayDay.sections.length > 0 && (
-                <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
-                  {todayDay.sections.map((sec) => (
-                    <span key={sec} style={{
-                      padding: "4px 10px", borderRadius: 999,
-                      background: C.white + "18", color: C.white,
-                      fontSize: 10, fontWeight: 700, textTransform: "uppercase",
-                      letterSpacing: 0.5, fontFamily,
-                    }}>
-                      {sec}
-                    </span>
-                  ))}
-                </div>
-              )}
-
+      {/* ── DAY CARDS — the feed ── */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "0 10px" }}>
+        {DAYS.map((day, i) => {
+          const isToday = i === todayIdx;
+          const isRest = day.key === "saturday";
+          return (
+            <Link key={day.key} href={`/workouts/${day.key}`} style={{ textDecoration: "none" }}>
               <div style={{
-                marginTop: 16, display: "flex", alignItems: "center", justifyContent: "space-between",
+                background: day.bg,
+                borderRadius: 20,
+                padding: "28px 24px",
+                minHeight: isToday ? 160 : 130,
+                position: "relative",
+                overflow: "hidden",
+                cursor: "pointer",
+                border: isToday ? `5px solid ${C.white}` : `4px solid ${day.bg === C.white ? C.black : day.bg}`,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
               }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: C.yellow, fontFamily }}>
-                  {started[todayDay.key] ? "Continue workout" : "Start workout"} &rarr;
-                </span>
-              </div>
-            </div>
-          </div>
-        </Link>
+                {/* Decorative shape */}
+                <CardShape bg={day.bg} />
 
-        {/* ── OTHER DAY CARDS ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {DAYS.filter((_, i) => i !== todayIdx).map((day) => {
-            const isRest = day.key === "saturday";
-            return (
-              <Link key={day.key} href={`/workouts/${day.key}`} style={{ textDecoration: "none" }}>
-                <div style={{
-                  background: C.white, borderRadius: 14,
-                  border: `3px solid ${C.black}`, padding: "14px 16px",
-                  cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center",
-                  transition: "transform 0.1s",
-                }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <div style={{
-                        width: 10, height: 10, borderRadius: "50%",
-                        background: isRest ? C.black + "20" : day.accent,
-                        border: `2px solid ${C.black}`,
-                        flexShrink: 0,
-                      }} />
-                      <span style={{ fontSize: 16, fontWeight: 800, color: C.black, fontFamily }}>{day.label}</span>
-                      {started[day.key] && (
-                        <span style={{
-                          background: C.green, color: C.white,
-                          fontSize: 9, fontWeight: 700, padding: "2px 8px",
-                          borderRadius: 999, textTransform: "uppercase", letterSpacing: 0.5,
-                        }}>
-                          Started
-                        </span>
-                      )}
+                {/* Content */}
+                <div style={{ position: "relative", zIndex: 1 }}>
+                  {/* TODAY badge */}
+                  {isToday && (
+                    <div style={{
+                      fontSize: 11, fontWeight: 800, color: C.black,
+                      background: C.white, borderRadius: 999,
+                      padding: "3px 12px", display: "inline-block",
+                      marginBottom: 8, letterSpacing: 1.5, textTransform: "uppercase",
+                      fontFamily,
+                    }}>
+                      TODAY
                     </div>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: C.black, margin: 0, fontFamily, opacity: 0.7 }}>{day.type}</p>
-                    <p style={{ fontSize: 11, color: C.black, margin: "2px 0 0", fontFamily, opacity: 0.4 }}>{day.subtitle}</p>
+                  )}
+
+                  {/* Day name + type — massive label, type to the right */}
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+                    <span style={{
+                      fontSize: isToday ? 52 : 44,
+                      fontWeight: 800,
+                      color: day.textColor,
+                      fontFamily,
+                      lineHeight: 1,
+                      letterSpacing: -1,
+                    }}>
+                      {day.label}
+                    </span>
+                    <span style={{
+                      fontSize: isRest ? 16 : 15,
+                      fontWeight: 700,
+                      color: day.textColor,
+                      fontFamily,
+                      opacity: isRest ? 0.4 : 0.7,
+                      textAlign: "right",
+                      flexShrink: 0,
+                      lineHeight: 1.2,
+                      maxWidth: 120,
+                    }}>
+                      {day.type}
+                    </span>
                   </div>
-                  <div style={{ fontSize: 20, color: C.black, fontWeight: 700, marginLeft: 12, opacity: 0.3 }}>&rarr;</div>
                 </div>
-              </Link>
-            );
-          })}
-        </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,0 +1,50 @@
+---
+description: Design philosophy for UI/UX — gym-floor ergonomics, Resort Optimism palette, Pinterest interaction model
+alwaysApply: true
+---
+
+# Design Philosophy — Resort Optimism Meets the Gym Floor
+
+## The Environment
+
+The primary use context is a gym: loud, blindingly bright, user is fatigued, phone held in one sweaty hand. Every design decision flows from this reality.
+
+## Five Principles
+
+### 1. Comically Large, Minimally Dense
+
+- Text and sections should be **absurdly oversized** — 40–52px headlines, not "slightly bigger than normal"
+- **One idea per viewport.** Information density must be minimal. Less on screen = more usable when tired.
+- Color contrast must be **broad, not subtle.** White on red. Black on yellow. Never gray on slightly-less-gray.
+
+### 2. Scroll Down, Swipe Right
+
+The two lowest-effort iPhone gestures for a fatigued person:
+- **Vertical scroll is king** — pages should be tall, spacious, one section flowing into the next
+- **Horizontal carousel** is the second-best gesture when tired
+- **Swiping left and desktop-style scrolling are hostile** — avoid as primary nav patterns
+- Design for recovery-state UX: catching breath, logging what just happened
+
+### 3. Pinterest Interaction Model
+
+Not just aesthetics — interaction architecture:
+- **Masonry layout**: Side-by-side cards at varying heights feel like browsing, not grinding a checklist. Randomness provides context without rigidity.
+- **Card expansion**: Tap a card → it grows to fill screen, centered, with generous space below for detail. This "browse many → focus on one" transition is the key pattern.
+- **Large, unique backgrounds per card** — each card is its own color world, not a row in a table.
+
+### 4. Color as Identity
+
+- **Bold, warm, intentional** — Resort Optimism palette (golden yellows, terracotta, ocean blue) and pop-art primaries (red, blue, yellow on black)
+- Never bland pastels. Never edgy black-and-red.
+- The color scheme should be **a reason to open the app**
+- Each section/card gets its own dominant color → visual landmarks navigable by color memory under gym lighting
+
+### 5. Variable Composition (Reinforced)
+
+- **Tight:** One card, one exercise, one number
+- **Wide:** The masonry grid — many things at a glance, none demanding focus
+- **Movement:** Pinterest expand/collapse — fluid transition between browsing and doing
+
+## Summary Formula
+
+Large type + bold color contrast + minimal info density + vertical scroll + masonry browse → card expand = **the gym-floor interaction model**
