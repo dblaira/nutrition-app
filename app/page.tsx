@@ -751,26 +751,51 @@ export default async function Home() {
                 width: "100%",
               }}
             >
-              Today&apos;s Training
+              Training
             </h3>
           </div>
         </Link>
       </div>
 
-      {/* ══════════ RECENT MEALS — big entries ══════════ */}
-      <div style={{ padding: "36px 20px 0" }}>
-        <h2
-          style={{
-            fontSize: 28,
-            fontWeight: 800,
-            color: C.charcoal,
-            margin: "0 0 16px",
-            fontFamily,
-          }}
-        >
-          Today&apos;s Meals
-        </h2>
+      {/* ══════════ MEALS — white card, brown border ══════════ */}
+      <div style={{ padding: "14px 20px 0" }}>
+        <Link href="/log-food" style={{ textDecoration: "none" }}>
+          <div
+            style={{
+              background: C.white,
+              borderRadius: 24,
+              padding: "40px 28px",
+              boxShadow: "0 6px 30px rgba(0,0,0,0.06)",
+              cursor: "pointer",
+              position: "relative",
+              overflow: "hidden",
+              minHeight: 200,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: `4px solid ${C.charcoal}`,
+            }}
+          >
+            <h3
+              style={{
+                margin: 0,
+                fontSize: 44,
+                fontWeight: 800,
+                color: C.charcoal,
+                fontFamily,
+                lineHeight: 1,
+                textAlign: "center",
+                width: "100%",
+              }}
+            >
+              Meals
+            </h3>
+          </div>
+        </Link>
+      </div>
 
+      {/* ══════════ RECENT MEALS ══════════ */}
+      <div style={{ padding: "14px 20px 0" }}>
         <div
           style={{
             background: C.white,
@@ -862,6 +887,7 @@ export default async function Home() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
     </>
