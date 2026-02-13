@@ -171,6 +171,25 @@ function CalorieRing({
   );
 }
 
+/* ── Types ── */
+interface MealEntry {
+  id: string;
+  quantity: number;
+  foods: {
+    name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  } | null;
+}
+
+interface Meal {
+  id: string;
+  name: string;
+  meal_entries: MealEntry[];
+}
+
 /* ═══════════════════════════════════════════════════════════
    MAIN PAGE — Server Component
    ═══════════════════════════════════════════════════════════ */
@@ -239,24 +258,6 @@ export default async function Home() {
     calories: number;
     meal: string;
   }[] = [];
-
-  interface MealEntry {
-    id: string;
-    quantity: number;
-    foods: {
-      name: string;
-      calories: number;
-      protein: number;
-      carbs: number;
-      fat: number;
-    } | null;
-  }
-
-  interface Meal {
-    id: string;
-    name: string;
-    meal_entries: MealEntry[];
-  }
 
   (meals as unknown as Meal[])?.forEach((meal) => {
     meal.meal_entries.forEach((entry) => {
@@ -884,7 +885,6 @@ export default async function Home() {
             </div>
           )}
         </div>
-      </div>
       </div>
     </div>
   );
