@@ -657,7 +657,7 @@ export default async function Home() {
               color: C.white,
               href: "#",
             },
-          ] as const
+          ]
         ).map((item) => (
           <Link
             key={item.label}
