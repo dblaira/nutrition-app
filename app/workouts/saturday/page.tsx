@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 /* ───────────────────────── PALETTE ───────────────────────── */
@@ -23,8 +24,193 @@ function daysToRace(): number {
   return Math.max(0, Math.ceil((race.getTime() - now.getTime()) / 86400000));
 }
 
+/* ───────────────────────── REST DAY SCIENCE NOTES ───────────────────────── */
+interface NoteSection {
+  id: string;
+  title: string;
+  color: string;
+  textColor: string;
+  bullets: string[];
+}
+
+const REST_DAY_NOTES: NoteSection[] = [
+  {
+    id: "direct-answer",
+    title: "Direct Answer",
+    color: C.black,
+    textColor: C.yellow,
+    bullets: [
+      "No, a high-end athlete over 40 does not universally \"must\" take 1 full day off from all exercise (including Zone 2) every week.",
+      "What IS evidence-based: endurance adaptation requires recovery. Inadequate recovery relative to load increases risk of non-functional overreaching, overtraining syndrome, illness, and overuse injury.",
+      "Some form of planned recovery is required. For many athletes that is at least one very low-load day, sometimes a true rest day.",
+    ],
+  },
+  {
+    id: "science",
+    title: "What the Science Supports",
+    color: C.blue,
+    textColor: C.white,
+    bullets: [
+      "Training works by overload + recovery. If overload accumulates without adequate recovery, performance and health worsen (non-functional overreaching, overtraining syndrome).",
+      "Poor load management is a recognized risk factor for illness and overtraining outcomes in athletes.",
+      "Higher training loads and fatigue markers are associated with increased injury and illness risk across sporting populations \u2014 the practical reason coaches build in recovery or lighter days.",
+    ],
+  },
+  {
+    id: "age-40",
+    title: "Why 40+ Changes the Math",
+    color: C.red,
+    textColor: C.white,
+    bullets: [
+      "Aging muscle recovery tends to be more delayed and less efficient due to anabolic resistance and inflammation-related mechanisms, increasing the need for recovery relative to the same training dose.",
+      "In active middle-aged men, recovery after an aerobic muscle-damage protocol was studied out to 48 hours, supporting that recovery timelines and responses differ by age.",
+      "Translation: over 40, you can still train huge, but the margin for error is smaller. Many masters athletes do better with more deliberate \u201Ceasy or off\u201D structure to avoid chronic accumulation.",
+    ],
+  },
+  {
+    id: "zone2",
+    title: "Do You Need a Full Day Off from Zone 2?",
+    color: C.white,
+    textColor: C.black,
+    bullets: [
+      "Not always. You need a day that is low enough load that it meaningfully improves recovery.",
+      "Option A: True rest day (no structured training).",
+      "Option B: Active recovery that is genuinely easy (often easier than people think).",
+      "Option C: A recovery week or reduced-load microcycle if your program is periodized.",
+      "ACSM notes: during tough training seasons, athletes should prioritize true rest days without structured exercise, using only lifestyle movement or gentle mobility.",
+    ],
+  },
+  {
+    id: "take-day-off",
+    title: "When a True Day Off Is the Right Call",
+    color: C.orange,
+    textColor: C.black,
+    bullets: [
+      "If ANY of these are present, a full day off is commonly justified because they signal inadequate recovery relative to load:",
+      "Performance stagnation or decline despite consistent training.",
+      "Rising illness frequency or lingering fatigue.",
+      "Overuse injury trend (niggles becoming persistent).",
+      "You are stacking many days with similar load (monotony) and not reducing strain with true easy days \u2014 a known risk context for overuse problems and maladaptation.",
+    ],
+  },
+  {
+    id: "zone2-ok",
+    title: "When Zone 2 on Recovery Day Is Fine",
+    color: C.green,
+    textColor: C.white,
+    bullets: [
+      "If Zone 2 is actually easy enough to lower overall stress, and you are not showing the red flags above, Zone 2 can function as active recovery.",
+      "The key caveat: \u201CZone 2\u201D workouts often drift into moderate intensity or become too long, turning the \u201Crecovery day\u201D into another training day \u2014 which defeats the purpose described in load and recovery consensus guidance.",
+    ],
+  },
+];
+
+/* ───────────────────────── EXPANDABLE NOTE CARD ───────────────────────── */
+function NoteCard({ section, isOpen, onToggle }: { section: NoteSection; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div
+      style={{
+        background: section.color,
+        borderRadius: 16,
+        border: `3px solid ${C.black}`,
+        overflow: "hidden",
+        cursor: "pointer",
+      }}
+      onClick={onToggle}
+    >
+      {/* Header — always visible */}
+      <div
+        style={{
+          padding: "16px 18px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 17,
+            fontWeight: 800,
+            color: section.textColor,
+            fontFamily,
+            lineHeight: 1.2,
+            flex: 1,
+            paddingRight: 12,
+          }}
+        >
+          {section.title}
+        </span>
+        <span
+          style={{
+            fontSize: 22,
+            fontWeight: 800,
+            color: section.textColor,
+            opacity: 0.6,
+            flexShrink: 0,
+            transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s ease",
+            lineHeight: 1,
+          }}
+        >
+          &#9660;
+        </span>
+      </div>
+
+      {/* Expandable content */}
+      {isOpen && (
+        <div style={{ padding: "0 18px 18px" }}>
+          <div
+            style={{
+              borderTop: `2px solid ${section.textColor === C.white ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.12)"}`,
+              paddingTop: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            {section.bullets.map((bullet, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: section.textColor,
+                    opacity: 0.5,
+                    flexShrink: 0,
+                    marginTop: 7,
+                  }}
+                />
+                <p
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: section.textColor,
+                    fontFamily,
+                    margin: 0,
+                    lineHeight: 1.5,
+                    opacity: 0.9,
+                  }}
+                >
+                  {bullet}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ───────────────────────── MAIN COMPONENT ───────────────────────── */
 export default function SaturdayRestPage() {
+  const [openNotes, setOpenNotes] = useState<Record<string, boolean>>({});
+
+  const toggleNote = (id: string) => {
+    setOpenNotes((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
     <div style={{ background: C.yellow, minHeight: "100vh", fontFamily }}>
       {/* HEADER */}
@@ -120,6 +306,33 @@ export default function SaturdayRestPage() {
           <p style={{ fontSize: 14, fontWeight: 700, color: C.yellow, fontFamily, margin: 0, textAlign: "center", lineHeight: 1.5 }}>
             &ldquo;The body does not get stronger during the workout. It gets stronger during the recovery.&rdquo;
           </p>
+        </div>
+
+        {/* ───── REST DAY SCIENCE NOTES ───── */}
+        <div style={{ width: "100%", maxWidth: 360, marginTop: 16 }}>
+          <h3 style={{
+            fontSize: 22, fontWeight: 800, color: C.black, fontFamily,
+            margin: "0 0 4px", letterSpacing: -0.5,
+          }}>
+            Rest Day Science
+          </h3>
+          <p style={{
+            fontSize: 13, fontWeight: 600, color: C.black, fontFamily,
+            opacity: 0.5, margin: "0 0 16px", lineHeight: 1.4,
+          }}>
+            Must you take a full day off? Tap each section.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {REST_DAY_NOTES.map((section) => (
+              <NoteCard
+                key={section.id}
+                section={section}
+                isOpen={!!openNotes[section.id]}
+                onToggle={() => toggleNote(section.id)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
