@@ -3,7 +3,7 @@
 import WorkoutPage, { C, type Exercise } from "@/components/WorkoutPage";
 
 const HEIGHTS = [220, 270, 200, 250, 230, 280, 210, 260, 240, 290, 195, 310, 225, 245];
-const STORAGE_KEY = "optimism-pop-tuesday-v1";
+const STORAGE_KEY = "optimism-pop-tuesday-v2";
 
 /* ───────────────────────── EXERCISE DATA ───────────────────────── */
 const EXERCISES: Exercise[] = [
@@ -12,13 +12,13 @@ const EXERCISES: Exercise[] = [
   { id: "tue-short-foot", name: "Short Foot", section: "warmup", sectionLabel: "Warm-Up", sets: 2, detail: "10 sec each foot", tip: "Big toe, little toe, heel down. Lift arch WITHOUT curling toes." },
   { id: "tue-band-eversion-wu", name: "Band Ankle Eversion", section: "warmup", sectionLabel: "Warm-Up", sets: 2, detail: "15 each side", tip: "Press outside of foot against band — targets peroneals for lateral ankle stability." },
   { id: "tue-adductor-squeeze-wu", name: "Adductor Squeeze", section: "warmup", sectionLabel: "Warm-Up", sets: 2, detail: "20 sec hold", tip: "Pillow or ball between knees, squeeze and hold. Protects left hip/groin." },
-  /* ── Main Strength ── */
-  { id: "tue-split-squat", name: "Split Squat", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "10 each leg · controlled", tip: "Controlled descent, front knee tracks over toes. Protect that left ankle — stay deliberate." },
-  { id: "tue-rdl", name: "RDL", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "10 reps · DB or BB", tip: "Hinge at hips, soft knee bend. Feel hamstrings load. Bar/DB stays close to legs." },
-  { id: "tue-cable-rotation", name: "Cable Transverse Rotation", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "12 each side", tip: "Rotate from the core, arms stay extended. Hips stay square — all rotation is thoracic." },
-  { id: "tue-kb-squat", name: "Wide-Knees KB Squat", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "12 reps · deadlift style", tip: "Wider stance, toes out. Grip kettlebell between feet, drive up through heels." },
-  { id: "tue-lateral-band", name: "Lateral Band Abduction", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "12 each side", tip: "Band around ankles. Stay low in quarter squat, step sideways with control." },
-  { id: "tue-hanging-knees", name: "Hanging Knees to Chest", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "8 reps", tip: "Dead hang start, curl knees up toward chest. Controlled, no swinging." },
+  /* ── Main Strength (Week 2: Progressive Overload) ── */
+  { id: "tue-split-squat", name: "Split Squat", section: "main", sectionLabel: "Main Strength", sets: 4, detail: "10 each leg · controlled", tip: "Week 2: Added 1 set (3→4). Add 5–10 lbs from last week if form is solid. Every set within 3 min gets harder." },
+  { id: "tue-rdl", name: "RDL", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "12 reps · DB or BB", tip: "Week 2: Added 2 reps per set (10→12). Add 5–10 lbs if last week felt controlled. Hinge at hips, bar stays close." },
+  { id: "tue-cable-rotation", name: "Cable Transverse Rotation", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "14 each side", tip: "Week 2: Added 2 reps per set (12→14). Bump cable weight 5 lbs if 12 felt easy. Hips stay square — all rotation is thoracic." },
+  { id: "tue-kb-squat", name: "Wide-Knees KB Squat", section: "main", sectionLabel: "Main Strength", sets: 4, detail: "12 reps · deadlift style", tip: "Week 2: Added 1 set (3→4). Go heavier on the KB if last week's weight was manageable. Drive up through heels." },
+  { id: "tue-lateral-band", name: "Lateral Band Abduction", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "14 each side", tip: "Week 2: Added 2 reps (12→14). Use a heavier band if available. Stay low in quarter squat, step sideways with control." },
+  { id: "tue-hanging-knees", name: "Hanging Knees to Chest", section: "main", sectionLabel: "Main Strength", sets: 3, detail: "10 reps", tip: "Week 2: Added 2 reps (8→10). Controlled, no swinging. If 10 is tough, slow the tempo instead." },
   /* ── Accessories & Correctives ── */
   { id: "tue-calf-raises", name: "Calf Raises (slow)", section: "accessories", sectionLabel: "Accessories", sets: 3, detail: "15 reps", tip: "Slow on the way up AND down. Full range — drop heel below step." },
   { id: "tue-band-eversion-acc", name: "Band Ankle Eversion", section: "accessories", sectionLabel: "Accessories", sets: 3, detail: "20 each side", tip: "Higher reps to build endurance in peroneals. Slow and controlled." },
@@ -198,7 +198,7 @@ export default function TuesdayWorkoutPage() {
       heights={HEIGHTS}
       art={ExerciseSVG}
       title="Tuesday"
-      subtitle="Lower Strength A"
+      subtitle="Lower Strength A · Week 2"
     />
   );
 }
