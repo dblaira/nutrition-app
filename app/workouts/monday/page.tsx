@@ -2,13 +2,21 @@
 
 import WorkoutPage, { C, type Exercise } from "@/components/WorkoutPage";
 
-const HEIGHTS = [220, 270, 200, 250, 230, 280, 210, 260, 240, 290];
-const STORAGE_KEY = "optimism-pop-monday-v1";
+const HEIGHTS = [220, 250, 200, 250, 200, 250, 200, 250, 220, 270, 200, 250, 230, 280, 210, 260, 240, 290];
+const STORAGE_KEY = "optimism-pop-monday-v2";
 
 /* ───────────────────────── EXERCISE DATA ───────────────────────── */
 const EXERCISES: Exercise[] = [
-  /* ── Cardio ── */
-  { id: "mon-bike", name: "Zone 2 Bike", section: "cardio", sectionLabel: "Cardio", sets: 1, detail: "60 min · Zone 2", tip: "Steady effort, conversation pace. Keep cadence 80–90 RPM if possible." },
+  /* ── Norwegian 4×4 — Stationary Bike ── */
+  { id: "mon-n44-warmup", name: "Warm-Up", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "10 min", tip: "Start conversational pace. By minute 5 reach 50–60% HRmax, by minute 10 reach 65–75% HRmax." },
+  { id: "mon-n44-int1", name: "Interval 1", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Build to 85–95% HRmax in first minute, then sustain. Breathing heavy, conversation difficult. Cadence 85–95 RPM." },
+  { id: "mon-n44-rec1", name: "Recovery 1", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "3 min", tip: "Keep pedaling — don't stop. Drop resistance significantly. Deep controlled breathing. Target 60–70% HRmax." },
+  { id: "mon-n44-int2", name: "Interval 2", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Same intensity as Interval 1. Mental toughness — maintain form and breathing rhythm. 85–95% HRmax." },
+  { id: "mon-n44-rec2", name: "Recovery 2", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "3 min", tip: "Active recovery. Let HR drop to 60–70% HRmax but keep moving." },
+  { id: "mon-n44-int3", name: "Interval 3", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Hardest interval mentally. Break it into 1-minute segments. \"I can do anything for 4 minutes.\" 85–95% HRmax." },
+  { id: "mon-n44-rec3", name: "Recovery 3", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "3 min", tip: "Last recovery. Prepare mentally for final push. 60–70% HRmax." },
+  { id: "mon-n44-int4", name: "Interval 4", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Final push — give it everything. Can push slightly higher if feeling good. 85–95% HRmax." },
+  { id: "mon-n44-cooldown", name: "Cool-Down", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "10 min", tip: "Gradually decrease intensity. HR below 60% HRmax. Static stretch quads, hamstrings, calves, hip flexors 30s each." },
   /* ── Complex 1: Pull then Push ── */
   { id: "mon-rows", name: "Rows", section: "complex-1", sectionLabel: "Complex 1", sets: 4, detail: "12 reps · your choice", tip: "Cable, barbell, or dumbbell rows. Full range of motion, squeeze at top." },
   { id: "mon-bench", name: "Bench Press", section: "complex-1", sectionLabel: "Complex 1", sets: 4, detail: "12 reps · bar or DB", tip: "Control the descent, press through the full range. Keep shoulder blades pinched." },
@@ -23,8 +31,8 @@ const EXERCISES: Exercise[] = [
   { id: "mon-foam-roll-legs", name: "Leg Foam Roll", section: "finishers", sectionLabel: "Finishers", sets: 1, detail: "3 min · all areas", tip: "Roll quads, hamstrings, calves, IT band. Prep for tomorrow's lower day." },
 ];
 
-const SECTIONS = ["cardio", "complex-1", "complex-2", "finishers"];
-const SECTION_NAMES: Record<string, string> = { cardio: "Cardio", "complex-1": "Complex 1", "complex-2": "Complex 2", finishers: "Finishers" };
+const SECTIONS = ["norwegian", "complex-1", "complex-2", "finishers"];
+const SECTION_NAMES: Record<string, string> = { norwegian: "Norwegian 4×4", "complex-1": "Complex 1", "complex-2": "Complex 2", finishers: "Finishers" };
 
 /* ───────────────────────── SVG ART ───────────────────────── */
 function ExerciseSVG({ id }: { id: string }) {
@@ -32,16 +40,39 @@ function ExerciseSVG({ id }: { id: string }) {
   const common = { xmlns: "http://www.w3.org/2000/svg", viewBox: s, width: "100%", height: "100%", preserveAspectRatio: "xMidYMid slice" as const };
 
   switch (id) {
-    case "mon-bike":
+    /* ── Norwegian 4×4 SVG Art ── */
+    case "mon-n44-warmup":
       return (<svg {...common}><rect width="200" height="200" fill={C.blue}/>
-        <circle cx="55" cy="135" r="35" fill="none" stroke={C.black} strokeWidth="3"/><circle cx="145" cy="135" r="35" fill="none" stroke={C.black} strokeWidth="3"/>
-        <line x1="55" y1="135" x2="100" y2="85" stroke={C.black} strokeWidth="3"/><line x1="100" y1="85" x2="145" y2="135" stroke={C.black} strokeWidth="3"/>
-        <circle cx="100" cy="50" r="14" fill={C.yellow} stroke={C.black} strokeWidth="3"/>
-        <line x1="100" y1="64" x2="100" y2="85" stroke={C.black} strokeWidth="3"/>
-        <ellipse cx="100" cy="105" rx="18" ry="25" fill={C.white} stroke={C.black} strokeWidth="3"/>
-        <line x1="100" y1="130" x2="75" y2="175" stroke={C.black} strokeWidth="3"/><line x1="100" y1="130" x2="125" y2="175" stroke={C.black} strokeWidth="3"/>
-        <line x1="85" y1="95" x2="70" y2="110" stroke={C.black} strokeWidth="3"/><line x1="115" y1="95" x2="130" y2="110" stroke={C.black} strokeWidth="3"/>
-        <polygon points="95,75 100,65 105,75" fill={C.black}/></svg>);
+        <circle cx="100" cy="100" r="30" fill={C.yellow} stroke={C.black} strokeWidth="3"/>
+        <circle cx="100" cy="100" r="50" fill="none" stroke={C.orange} strokeWidth="3"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke={C.orange} strokeWidth="3"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke={C.yellow} strokeWidth="3"/>
+        <polygon points="95,80 105,80 100,65" fill={C.black}/>
+        <polygon points="95,120 105,120 100,135" fill={C.black}/></svg>);
+    case "mon-n44-int1":
+    case "mon-n44-int2":
+    case "mon-n44-int3":
+    case "mon-n44-int4":
+      return (<svg {...common}><rect width="200" height="200" fill={C.black}/>
+        <polygon points="60,180 100,30 140,180" fill={C.red} stroke={C.black} strokeWidth="3"/>
+        <polygon points="75,180 100,65 125,180" fill={C.yellow} stroke={C.black} strokeWidth="3"/>
+        <polygon points="90,180 100,100 110,180" fill={C.red} stroke={C.black} strokeWidth="3"/>
+        <rect x="0" y="180" width="200" height="20" fill={C.black}/></svg>);
+    case "mon-n44-rec1":
+    case "mon-n44-rec2":
+    case "mon-n44-rec3":
+      return (<svg {...common}><rect width="200" height="200" fill={C.teal}/>
+        <path d="M 0 80 Q 25 60 50 80 Q 75 100 100 80 Q 125 60 150 80 Q 175 100 200 80" fill="none" stroke={C.blue} strokeWidth="4"/>
+        <path d="M 0 110 Q 25 90 50 110 Q 75 130 100 110 Q 125 90 150 110 Q 175 130 200 110" fill="none" stroke={C.white} strokeWidth="4"/>
+        <path d="M 0 140 Q 25 120 50 140 Q 75 160 100 140 Q 125 120 150 140 Q 175 160 200 140" fill="none" stroke={C.blue} strokeWidth="4"/></svg>);
+    case "mon-n44-cooldown":
+      return (<svg {...common}><rect width="200" height="200" fill={C.blue}/>
+        <rect x="0" y="140" width="200" height="60" fill={C.black}/>
+        <circle cx="100" cy="70" r="40" fill={C.orange} stroke={C.black} strokeWidth="3"/>
+        <path d="M 0 140 Q 50 120 100 140 Q 150 160 200 140" fill={C.blue} stroke={C.black} strokeWidth="3"/>
+        <line x1="100" y1="30" x2="100" y2="10" stroke={C.yellow} strokeWidth="3"/>
+        <line x1="130" y1="40" x2="145" y2="25" stroke={C.yellow} strokeWidth="3"/>
+        <line x1="70" y1="40" x2="55" y2="25" stroke={C.yellow} strokeWidth="3"/></svg>);
     case "mon-rows":
       return (<svg {...common}><rect width="200" height="200" fill={C.red}/>
         <rect x="25" y="75" width="150" height="12" rx="6" fill={C.white} stroke={C.black} strokeWidth="3"/>
@@ -142,7 +173,7 @@ export default function MondayWorkoutPage() {
       heights={HEIGHTS}
       art={ExerciseSVG}
       title="Monday"
-      subtitle="Cross-Train + Upper A"
+      subtitle="Norwegian 4×4 + Upper A · Week 2"
     />
   );
 }
