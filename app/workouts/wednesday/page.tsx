@@ -2,13 +2,21 @@
 
 import WorkoutPage, { C, fontFamily, type Exercise } from "@/components/WorkoutPage";
 
-const HEIGHTS = [220, 270, 200, 250, 230, 280, 210, 260, 240];
-const STORAGE_KEY = "optimism-pop-wednesday-v1";
+const HEIGHTS = [220, 250, 200, 250, 200, 250, 200, 250, 220, 270, 200, 250, 230, 280, 210, 260, 240];
+const STORAGE_KEY = "optimism-pop-wednesday-v2";
 
 /* ───────────────────────── EXERCISE DATA ───────────────────────── */
 const EXERCISES: Exercise[] = [
-  /* ── Cardio ── */
-  { id: "wed-cardio", name: "Zone 2 Cardio", section: "cardio", sectionLabel: "Cardio", sets: 1, detail: "60 min bike OR 40 min run", tip: "If running: do the pre-run warm-up first (dorsiflexion rocks, ankle circles, eversion hold, short foot, hip flexor march, adduction raises, SL balance, SL RDL reach)." },
+  /* ── Norwegian 4×4 — Stationary Bike ── */
+  { id: "wed-n44-warmup", name: "Warm-Up", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "10 min", tip: "Start conversational pace. By minute 5 reach 50–60% HRmax, by minute 10 reach 65–75% HRmax." },
+  { id: "wed-n44-int1", name: "Interval 1", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Build to 85–95% HRmax in first minute, then sustain. Breathing heavy, conversation difficult. Cadence 85–95 RPM." },
+  { id: "wed-n44-rec1", name: "Recovery 1", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "3 min", tip: "Keep pedaling — don't stop. Drop resistance significantly. Deep controlled breathing. Target 60–70% HRmax." },
+  { id: "wed-n44-int2", name: "Interval 2", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Same intensity as Interval 1. Mental toughness — maintain form and breathing rhythm. 85–95% HRmax." },
+  { id: "wed-n44-rec2", name: "Recovery 2", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "3 min", tip: "Active recovery. Let HR drop to 60–70% HRmax but keep moving." },
+  { id: "wed-n44-int3", name: "Interval 3", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Hardest interval mentally. Break it into 1-minute segments. \"I can do anything for 4 minutes.\" 85–95% HRmax." },
+  { id: "wed-n44-rec3", name: "Recovery 3", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "3 min", tip: "Last recovery. Prepare mentally for final push. 60–70% HRmax." },
+  { id: "wed-n44-int4", name: "Interval 4", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "4 min", tip: "Final push — give it everything. Can push slightly higher if feeling good. 85–95% HRmax." },
+  { id: "wed-n44-cooldown", name: "Cool-Down", section: "norwegian", sectionLabel: "Norwegian 4×4", sets: 1, detail: "10 min", tip: "Gradually decrease intensity. HR below 60% HRmax. Static stretch quads, hamstrings, calves, hip flexors 30s each." },
   /* ── Push/Pull A ── */
   { id: "wed-tricep-ext", name: "Cable Tricep Extension", section: "upper-1", sectionLabel: "Push/Pull A", sets: 3, detail: "12 reps", tip: "Keep elbows tucked, extend fully. Squeeze at the bottom." },
   { id: "wed-bicep-curls", name: "Dumbbell Bicep Curls", section: "upper-1", sectionLabel: "Push/Pull A", sets: 3, detail: "12 reps", tip: "Full range of motion. Control the descent — don't swing." },
@@ -22,8 +30,8 @@ const EXERCISES: Exercise[] = [
   { id: "wed-pushups", name: "Push-Ups", section: "finishers", sectionLabel: "Finishers", sets: 2, detail: "Max reps", tip: "Chest to floor, full lockout at top. Keep body straight." },
 ];
 
-const SECTIONS = ["cardio", "upper-1", "upper-2", "finishers"];
-const SECTION_NAMES: Record<string, string> = { cardio: "Cardio", "upper-1": "Push/Pull A", "upper-2": "Push/Pull B", finishers: "Finishers" };
+const SECTIONS = ["norwegian", "upper-1", "upper-2", "finishers"];
+const SECTION_NAMES: Record<string, string> = { norwegian: "Norwegian 4×4", "upper-1": "Push/Pull A", "upper-2": "Push/Pull B", finishers: "Finishers" };
 
 /* ───────────────────────── SVG ART ───────────────────────── */
 function ExerciseSVG({ id }: { id: string }) {
@@ -31,24 +39,39 @@ function ExerciseSVG({ id }: { id: string }) {
   const common = { xmlns: "http://www.w3.org/2000/svg", viewBox: s, width: "100%", height: "100%", preserveAspectRatio: "xMidYMid slice" as const };
 
   switch (id) {
-    case "wed-cardio":
+    /* ── Norwegian 4×4 SVG Art ── */
+    case "wed-n44-warmup":
+      return (<svg {...common}><rect width="200" height="200" fill={C.blue}/>
+        <circle cx="100" cy="100" r="30" fill={C.yellow} stroke={C.black} strokeWidth="3"/>
+        <circle cx="100" cy="100" r="50" fill="none" stroke={C.orange} strokeWidth="3"/>
+        <circle cx="100" cy="100" r="70" fill="none" stroke={C.orange} strokeWidth="3"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke={C.yellow} strokeWidth="3"/>
+        <polygon points="95,80 105,80 100,65" fill={C.black}/>
+        <polygon points="95,120 105,120 100,135" fill={C.black}/></svg>);
+    case "wed-n44-int1":
+    case "wed-n44-int2":
+    case "wed-n44-int3":
+    case "wed-n44-int4":
+      return (<svg {...common}><rect width="200" height="200" fill={C.black}/>
+        <polygon points="60,180 100,30 140,180" fill={C.red} stroke={C.black} strokeWidth="3"/>
+        <polygon points="75,180 100,65 125,180" fill={C.yellow} stroke={C.black} strokeWidth="3"/>
+        <polygon points="90,180 100,100 110,180" fill={C.red} stroke={C.black} strokeWidth="3"/>
+        <rect x="0" y="180" width="200" height="20" fill={C.black}/></svg>);
+    case "wed-n44-rec1":
+    case "wed-n44-rec2":
+    case "wed-n44-rec3":
       return (<svg {...common}><rect width="200" height="200" fill={C.teal}/>
-        <rect x="0" y="0" width="100" height="200" fill={C.blue}/>
-        <line x1="0" y1="100" x2="100" y2="100" stroke={C.black} strokeWidth="3"/>
-        <circle cx="35" cy="130" r="30" fill="none" stroke={C.black} strokeWidth="3"/>
-        <circle cx="65" cy="130" r="30" fill="none" stroke={C.black} strokeWidth="3"/>
-        <line x1="35" y1="130" x2="50" y2="85" stroke={C.black} strokeWidth="3"/>
-        <line x1="50" y1="85" x2="65" y2="130" stroke={C.black} strokeWidth="3"/>
-        <circle cx="50" cy="55" r="12" fill={C.yellow} stroke={C.black} strokeWidth="3"/>
-        <line x1="50" y1="67" x2="50" y2="85" stroke={C.black} strokeWidth="3"/>
-        <ellipse cx="50" cy="95" rx="15" ry="18" fill={C.white} stroke={C.black} strokeWidth="3"/>
-        <line x1="50" y1="113" x2="35" y2="160" stroke={C.black} strokeWidth="3"/>
-        <line x1="50" y1="113" x2="65" y2="160" stroke={C.black} strokeWidth="3"/>
-        <path d="M 130 50 Q 145 35 160 50" fill="none" stroke={C.black} strokeWidth="3"/>
-        <path d="M 130 80 Q 145 65 160 80" fill="none" stroke={C.black} strokeWidth="3"/>
-        <path d="M 130 110 Q 145 95 160 110" fill="none" stroke={C.black} strokeWidth="3"/>
-        <ellipse cx="145" cy="140" rx="25" ry="18" fill={C.red} stroke={C.black} strokeWidth="3"/>
-        <text x="100" y="105" textAnchor="middle" fill={C.yellow} fontSize="18" fontWeight="800" fontFamily={fontFamily}>OR</text></svg>);
+        <path d="M 0 80 Q 25 60 50 80 Q 75 100 100 80 Q 125 60 150 80 Q 175 100 200 80" fill="none" stroke={C.blue} strokeWidth="4"/>
+        <path d="M 0 110 Q 25 90 50 110 Q 75 130 100 110 Q 125 90 150 110 Q 175 130 200 110" fill="none" stroke={C.white} strokeWidth="4"/>
+        <path d="M 0 140 Q 25 120 50 140 Q 75 160 100 140 Q 125 120 150 140 Q 175 160 200 140" fill="none" stroke={C.blue} strokeWidth="4"/></svg>);
+    case "wed-n44-cooldown":
+      return (<svg {...common}><rect width="200" height="200" fill={C.blue}/>
+        <rect x="0" y="140" width="200" height="60" fill={C.black}/>
+        <circle cx="100" cy="70" r="40" fill={C.orange} stroke={C.black} strokeWidth="3"/>
+        <path d="M 0 140 Q 50 120 100 140 Q 150 160 200 140" fill={C.blue} stroke={C.black} strokeWidth="3"/>
+        <line x1="100" y1="30" x2="100" y2="10" stroke={C.yellow} strokeWidth="3"/>
+        <line x1="130" y1="40" x2="145" y2="25" stroke={C.yellow} strokeWidth="3"/>
+        <line x1="70" y1="40" x2="55" y2="25" stroke={C.yellow} strokeWidth="3"/></svg>);
     case "wed-tricep-ext":
       return (<svg {...common}><rect width="200" height="200" fill={C.blue}/>
         <rect x="160" y="0" width="40" height="200" fill={C.black}/>
@@ -157,7 +180,7 @@ export default function WednesdayWorkoutPage() {
       heights={HEIGHTS}
       art={ExerciseSVG}
       title="Wednesday"
-      subtitle="Cross-Train + Upper B"
+      subtitle="Norwegian 4×4 + Upper B · Week 2"
     />
   );
 }
