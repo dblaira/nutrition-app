@@ -96,6 +96,29 @@ function loadLastWeights(storageKey: string): WeightState {
   }
 }
 
+/* ───────────────────────── NOTES STORAGE ───────────────────────── */
+type NotesState = Record<string, string>;
+
+function notesKey(storageKey: string): string {
+  return `${storageKey}-notes`;
+}
+
+function loadNotes(storageKey: string): NotesState {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(notesKey(storageKey));
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveNotes(storageKey: string, n: NotesState) {
+  try {
+    localStorage.setItem(notesKey(storageKey), JSON.stringify(n));
+  } catch {}
+}
+
 /* ───────────────────────── RACE COUNTDOWN ───────────────────────── */
 function daysToRace(): number {
   const race = new Date("2026-05-03T00:00:00");
@@ -120,11 +143,13 @@ export default function WorkoutPage({
   const [formModalUrl, setFormModalUrl] = useState<string | null>(null);
   const [weights, setWeights] = useState<WeightState>({});
   const [lastWeights, setLastWeights] = useState<WeightState>({});
+  const [notes, setNotes] = useState<NotesState>({});
 
   useEffect(() => {
     setChecks(loadChecks(storageKey));
     setWeights(loadWeights(storageKey));
     setLastWeights(loadLastWeights(storageKey));
+    setNotes(loadNotes(storageKey));
     setMounted(true);
   }, [storageKey]);
 
@@ -133,6 +158,17 @@ export default function WorkoutPage({
       setWeights((prev) => {
         const next = { ...prev, [id]: value };
         saveWeights(storageKey, next);
+        return next;
+      });
+    },
+    [storageKey],
+  );
+
+  const updateNote = useCallback(
+    (id: string, value: string) => {
+      setNotes((prev) => {
+        const next = { ...prev, [id]: value };
+        saveNotes(storageKey, next);
         return next;
       });
     },
@@ -286,15 +322,9 @@ export default function WorkoutPage({
                   updateWeight(ex.id, lbs);
                 },
                 onNote: (text: string) => {
-                  // Store notes in localStorage
-                  try {
-                    const notesKey = `${storageKey}-notes`;
-                    const existing = JSON.parse(localStorage.getItem(notesKey) || "{}");
-                    existing[ex.id] = existing[ex.id]
-                      ? existing[ex.id] + " | " + text
-                      : text;
-                    localStorage.setItem(notesKey, JSON.stringify(existing));
-                  } catch {}
+                  const current = notes[ex.id] || "";
+                  const updated = current ? current + " | " + text : text;
+                  updateNote(ex.id, updated);
                 },
               }}
             />
@@ -484,6 +514,44 @@ export default function WorkoutPage({
             >
               +
             </button>
+          </div>
+
+          {/* ── Notes — quality / completion comments ── */}
+          <div style={{ marginBottom: 20 }}>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: C.black,
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                marginBottom: 6,
+                fontFamily,
+              }}
+            >
+              Notes
+            </div>
+            <textarea
+              value={notes[ex.id] || ""}
+              onChange={(e) => updateNote(ex.id, e.target.value)}
+              placeholder="Quality, form cues, incomplete reps..."
+              rows={3}
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                borderRadius: 14,
+                border: `3px solid ${C.black}`,
+                background: notes[ex.id] ? C.yellow : C.white,
+                padding: "14px 16px",
+                fontSize: 18,
+                fontWeight: 600,
+                fontFamily,
+                color: C.black,
+                resize: "vertical",
+                outline: "none",
+                lineHeight: 1.4,
+              }}
+            />
           </div>
 
           {/* ── Timer — auto-loaded for timed exercises (Phase 2) ── */}
@@ -854,9 +922,25 @@ export default function WorkoutPage({
                         fontFamily,
                         lineHeight: 1.15,
                         margin: "2px 0 4px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
                       }}
                     >
                       {ex.name}
+                      {notes[ex.id] && (
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            background: C.orange,
+                            flexShrink: 0,
+                          }}
+                          title="Has notes"
+                        />
+                      )}
                     </div>
                     <div
                       style={{
