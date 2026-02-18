@@ -74,3 +74,8 @@
     display: none;
   }
 }
+
+.notes-textarea::placeholder {
+  color: #F5C518;
+  opacity: 0.6;
+}

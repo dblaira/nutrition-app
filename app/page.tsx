@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { signout } from "@/app/login/actions";
+import { QuickLogButtons } from "@/components/QuickLogButtons";
 
 /* ═══════════════════════════════════════════════════════════
    RESORT OPTIMISM PALETTE
@@ -295,6 +296,29 @@ export default async function Home() {
     profile?.full_name?.split(" ")[0] ||
     profile?.email?.[0]?.toUpperCase() ||
     "Friend";
+
+  /* ── Today's water & caffeine totals ── */
+  const { data: waterLogs } = await supabase
+    .from("water_logs")
+    .select("amount_oz")
+    .eq("user_id", user.id)
+    .gte("logged_at", `${today}T00:00:00`)
+    .lte("logged_at", `${today}T23:59:59`);
+
+  const todayWaterOz = (waterLogs || []).reduce(
+    (sum: number, row: any) => sum + Number(row.amount_oz), 0
+  );
+
+  const { data: caffeineLogs } = await supabase
+    .from("caffeine_logs")
+    .select("amount_mg")
+    .eq("user_id", user.id)
+    .gte("logged_at", `${today}T00:00:00`)
+    .lte("logged_at", `${today}T23:59:59`);
+
+  const todayCaffeineMg = (caffeineLogs || []).reduce(
+    (sum: number, row: any) => sum + Number(row.amount_mg), 0
+  );
 
   /* Today's workout route */
   const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -689,6 +713,11 @@ export default async function Home() {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* ══════════ QUICK LOG BUTTONS ══════════ */}
+      <div style={{ marginTop: 28 }}>
+        <QuickLogButtons todayWaterOz={todayWaterOz} todayCaffeineMg={todayCaffeineMg} />
       </div>
 
       {/* ══════════ TODAY'S TRAINING — massive, bold ══════════ */}
