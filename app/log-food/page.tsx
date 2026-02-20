@@ -40,7 +40,7 @@ export default function LogFoodPage() {
     };
 
     return (
-        <div className="min-h-screen p-4 md:p-8 max-w-md mx-auto md:max-w-4xl space-y-6">
+        <div className="min-h-screen p-4 md:p-8 max-w-md mx-auto md:max-w-4xl space-y-6 pb-24">
             <header className="flex items-center gap-4">
                 <Link href="/" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                     <ArrowLeft size={24} />

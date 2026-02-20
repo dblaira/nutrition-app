@@ -104,7 +104,7 @@ export default function WorkoutsLandingPage() {
   }
 
   return (
-    <div style={{ background: C.black, minHeight: "100vh", fontFamily, paddingBottom: 40 }}>
+    <div style={{ background: C.black, minHeight: "100vh", fontFamily, paddingBottom: 88 }}>
       {/* ── HEADER — compact, stays out of the way ── */}
       <header style={{ padding: "20px 16px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

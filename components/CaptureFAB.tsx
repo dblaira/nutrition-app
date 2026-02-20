@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { X, Mic, MicOff } from 'lucide-react'
 import { saveIntake } from '@/app/actions/intake'
 import { BarcodeScanner } from './BarcodeScanner'
 
@@ -27,8 +28,6 @@ interface InferredIntake {
   raw_text: string
 }
 
-type FABState = 'closed' | 'input' | 'confirming'
-
 const C = {
   sun: '#F2C744',
   terra: '#D4654A',
@@ -43,6 +42,8 @@ const C = {
   navy: '#0A1F44',
   fab: '#2AA9DB',
 }
+
+const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
 
 interface SpeechRecognitionEvent {
   results: SpeechRecognitionResultList
@@ -72,8 +73,14 @@ declare global {
   }
 }
 
-export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) {
-  const [state, setState] = useState<FABState>('closed')
+interface CaptureFABProps {
+  isOpen: boolean
+  onClose: () => void
+  onEntryCreated?: () => void
+}
+
+export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps) {
+  const [mode, setMode] = useState<'input' | 'confirming'>('input')
   const [inputText, setInputText] = useState('')
   const [isInferring, setIsInferring] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -89,6 +96,19 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
     setVoiceSupported(!!(window.SpeechRecognition || window.webkitSpeechRecognition))
     return () => { recognitionRef.current?.abort() }
   }, [])
+
+  useEffect(() => {
+    if (isOpen) {
+      setMode('input')
+      setInputText('')
+      setInferredData(null)
+      setError('')
+      setShowBarcodeScanner(false)
+    } else {
+      recognitionRef.current?.abort()
+      setIsListening(false)
+    }
+  }, [isOpen])
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.abort()
@@ -128,9 +148,19 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
     setIsListening(true)
   }, [stopListening])
 
+  const handleClose = () => {
+    recognitionRef.current?.abort()
+    setIsListening(false)
+    setMode('input')
+    setInputText('')
+    setInferredData(null)
+    setError('')
+    setShowBarcodeScanner(false)
+    onClose()
+  }
+
   const handleBarcodeResult = (product: any) => {
     setShowBarcodeScanner(false)
-    // Populate inferred data directly from barcode lookup
     setInferredData({
       type: 'food',
       meal_name: null,
@@ -151,20 +181,7 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
       supplements: null,
       raw_text: `Barcode: ${product.barcode} - ${product.name}`,
     })
-    setState('confirming')
-  }
-
-  const handleOpen = () => {
-    setState('input')
-    setError('')
-    setTimeout(() => textareaRef.current?.focus(), 100)
-  }
-
-  const handleClose = () => {
-    setState('closed')
-    setInputText('')
-    setInferredData(null)
-    setError('')
+    setMode('confirming')
   }
 
   const handleInfer = async () => {
@@ -187,7 +204,7 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
       }
 
       setInferredData(data)
-      setState('confirming')
+      setMode('confirming')
     } catch (err: any) {
       setError(err.message || 'Network error')
     } finally {
@@ -219,7 +236,6 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
       }
 
       onEntryCreated?.()
-      handleClose()
     } catch (err: any) {
       setError(err.message || 'Failed to save')
     } finally {
@@ -227,39 +243,8 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
     }
   }
 
-  // ── CLOSED ──
-  if (state === 'closed') {
-    return (
-      <button
-        onClick={handleOpen}
-        aria-label="Log intake"
-        style={{
-          position: 'fixed',
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-          right: '24px',
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          background: C.fab,
-          color: C.white,
-          border: 'none',
-          fontSize: '2rem',
-          fontWeight: 300,
-          cursor: 'pointer',
-          boxShadow: '0 4px 24px rgba(42, 169, 219, 0.45)',
-          zIndex: 1000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        }}
-      >
-        +
-      </button>
-    )
-  }
+  if (!isOpen) return null
 
-  // ── BARCODE SCANNER (must be checked before input state) ──
   if (showBarcodeScanner) {
     return (
       <BarcodeScanner
@@ -269,350 +254,437 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
     )
   }
 
-  // ── INPUT ──
-  if (state === 'input') {
+  /* ═══════ INPUT MODE — full-screen, voice-first ═══════ */
+  if (mode === 'input') {
     return (
       <div style={{
         position: 'fixed',
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-        right: '24px',
-        width: 'min(360px, calc(100vw - 48px))',
-        background: C.white,
-        borderRadius: 20,
-        boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
-        padding: '20px',
-        zIndex: 1000,
+        inset: 0,
+        background: C.cream,
+        zIndex: 1001,
+        display: 'flex',
+        flexDirection: 'column',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}>
-        <textarea
-          ref={textareaRef}
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder='What did you have? e.g. "2 eggs and toast" or "16oz water" or "espresso"'
-          style={{
-            width: '100%',
-            minHeight: 90,
-            border: `2px solid ${C.sand}`,
-            borderRadius: 12,
-            padding: '14px',
-            fontSize: '1rem',
-            resize: 'vertical',
-            outline: 'none',
-            fontFamily: "'Outfit', sans-serif",
-            color: C.charcoal,
-            background: C.cream,
-          }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = C.terra }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = C.sand }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleInfer()
-          }}
-        />
-
-        {error && (
-          <p style={{ color: C.red, fontSize: '0.8rem', margin: '8px 0 0', fontFamily: "'Outfit', sans-serif" }}>
-            {error}
-          </p>
-        )}
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          padding: '16px 20px 0',
+        }}>
           <button
             onClick={handleClose}
+            aria-label="Close"
             style={{
-              background: 'transparent',
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: C.charcoal + '10',
               border: 'none',
-              color: C.warmGray,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               cursor: 'pointer',
-              fontSize: '0.85rem',
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 500,
             }}
           >
-            Cancel
+            <X size={24} color={C.charcoal} />
           </button>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {/* Barcode button */}
+        </div>
+
+        <div style={{ textAlign: 'center', padding: '16px 20px 0' }}>
+          <h2 style={{
+            fontSize: 32,
+            fontWeight: 800,
+            color: C.charcoal,
+            fontFamily,
+            margin: 0,
+          }}>
+            What did you have?
+          </h2>
+        </div>
+
+        {voiceSupported && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '36px 20px 20px',
+          }}>
             <button
-              onClick={() => setShowBarcodeScanner(true)}
+              onClick={isListening ? stopListening : startListening}
+              aria-label={isListening ? 'Stop recording' : 'Start voice input'}
               style={{
-                width: 40,
-                height: 40,
+                width: 120,
+                height: 120,
                 borderRadius: '50%',
-                border: `2px solid ${C.sand}`,
-                background: C.cream,
-                cursor: 'pointer',
+                background: isListening ? C.red : C.fab,
+                border: 'none',
+                color: C.white,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: isListening
+                  ? '0 0 0 16px rgba(204, 41, 54, 0.12), 0 8px 32px rgba(204, 41, 54, 0.25)'
+                  : '0 8px 32px rgba(42, 169, 219, 0.25)',
+                transition: 'all 0.3s ease',
               }}
-              aria-label="Scan barcode"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                stroke={C.warmGray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 5V3h4" /><path d="M17 3h4v2" />
-                <path d="M21 19v2h-4" /><path d="M7 21H3v-2" />
-                <line x1="7" y1="8" x2="7" y2="16" />
-                <line x1="11" y1="8" x2="11" y2="16" />
-                <line x1="15" y1="8" x2="15" y2="16" />
-              </svg>
+              {isListening
+                ? <MicOff size={48} strokeWidth={1.8} />
+                : <Mic size={48} strokeWidth={1.8} />
+              }
             </button>
-            {voiceSupported && (
-              <button
-                onClick={isListening ? stopListening : startListening}
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  border: `2px solid ${isListening ? C.red : C.sand}`,
-                  background: isListening ? C.red : C.cream,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s',
-                }}
-                aria-label={isListening ? 'Stop recording' : 'Start voice input'}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                  stroke={isListening ? C.white : C.warmGray} strokeWidth="2.5"
-                  strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                  <line x1="12" y1="19" x2="12" y2="23" />
-                  <line x1="8" y1="23" x2="16" y2="23" />
-                </svg>
-              </button>
-            )}
-            <button
-              onClick={handleInfer}
-              disabled={isInferring || !inputText.trim()}
-              style={{
+            <p style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: C.warmGray,
+              fontFamily,
+              marginTop: 16,
+              marginBottom: 0,
+            }}>
+              {isListening ? 'Listening...' : 'Tap to speak'}
+            </p>
+          </div>
+        )}
+
+        <div style={{ padding: '0 20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <textarea
+            ref={textareaRef}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder={voiceSupported
+              ? 'Or type here...'
+              : 'What did you have? e.g. "2 eggs and toast"'
+            }
+            style={{
+              width: '100%',
+              minHeight: 100,
+              border: `2px solid ${C.sand}`,
+              borderRadius: 16,
+              padding: 16,
+              fontSize: 18,
+              resize: 'none',
+              outline: 'none',
+              fontFamily,
+              color: C.charcoal,
+              background: C.white,
+              boxSizing: 'border-box',
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = C.terra }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = C.sand }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleInfer()
+            }}
+          />
+
+          {error && (
+            <p style={{
+              color: C.red,
+              fontSize: 16,
+              margin: '12px 0 0',
+              fontFamily,
+              fontWeight: 600,
+            }}>
+              {error}
+            </p>
+          )}
+        </div>
+
+        <div style={{ padding: '16px 20px 24px' }}>
+          <button
+            onClick={() => setShowBarcodeScanner(true)}
+            style={{
+              width: '100%',
+              height: 52,
+              background: C.white,
+              border: `2px solid ${C.sand}`,
+              borderRadius: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              cursor: 'pointer',
+              marginBottom: 12,
+            }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+              stroke={C.warmGray} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 5V3h4" /><path d="M17 3h4v2" />
+              <path d="M21 19v2h-4" /><path d="M7 21H3v-2" />
+              <line x1="7" y1="8" x2="7" y2="16" />
+              <line x1="11" y1="8" x2="11" y2="16" />
+              <line x1="15" y1="8" x2="15" y2="16" />
+            </svg>
+            <span style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: C.warmGray,
+              fontFamily,
+            }}>
+              Scan barcode
+            </span>
+          </button>
+
+          <button
+            onClick={handleInfer}
+            disabled={isInferring || !inputText.trim()}
+            style={{
+              width: '100%',
+              height: 56,
               background: C.fab,
               color: C.white,
               border: 'none',
-              borderRadius: 12,
-              padding: '10px 24px',
-              fontSize: '0.85rem',
+              borderRadius: 16,
+              fontSize: 20,
               fontWeight: 700,
               cursor: isInferring ? 'wait' : 'pointer',
-              opacity: isInferring || !inputText.trim() ? 0.55 : 1,
-              fontFamily: "'Outfit', sans-serif",
+              opacity: isInferring || !inputText.trim() ? 0.5 : 1,
+              fontFamily,
               transition: 'opacity 0.15s',
             }}
           >
-            {isInferring ? 'Thinking...' : 'Capture ⌘↵'}
-            </button>
-          </div>
+            {isInferring ? 'Thinking...' : 'Capture'}
+          </button>
         </div>
       </div>
     )
   }
 
-  // ── CONFIRMING ──
-  if (state === 'confirming' && inferredData) {
+  /* ═══════ CONFIRMING MODE — full-screen ═══════ */
+  if (mode === 'confirming' && inferredData) {
     return (
       <div style={{
         position: 'fixed',
-        bottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-        right: '24px',
-        width: 'min(360px, calc(100vw - 48px))',
-        background: C.white,
-        borderRadius: 20,
-        boxShadow: '0 8px 48px rgba(0,0,0,0.18)',
-        padding: '20px',
-        zIndex: 1000,
-        maxHeight: '70vh',
-        overflowY: 'auto',
+        inset: 0,
+        background: C.cream,
+        zIndex: 1001,
+        display: 'flex',
+        flexDirection: 'column',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}>
-        {/* Type badge */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
-          <TypeBadge type={inferredData.type} />
-          {inferredData.meal_name && (
-            <span style={{
-              padding: '4px 12px',
-              background: C.sand,
-              borderRadius: 20,
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: C.charcoal,
-              fontFamily: "'Outfit', sans-serif",
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          padding: '16px 20px 0',
+        }}>
+          <button
+            onClick={handleClose}
+            aria-label="Close"
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: C.charcoal + '10',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+            }}
+          >
+            <X size={24} color={C.charcoal} />
+          </button>
+        </div>
+
+        <div style={{ padding: '8px 20px', flex: 1, overflowY: 'auto' }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
+            <TypeBadge type={inferredData.type} />
+            {inferredData.meal_name && (
+              <span style={{
+                padding: '6px 16px',
+                background: C.sand,
+                borderRadius: 20,
+                fontSize: 16,
+                fontWeight: 600,
+                color: C.charcoal,
+                fontFamily,
+              }}>
+                {inferredData.meal_name}
+              </span>
+            )}
+          </div>
+
+          {inferredData.items && inferredData.items.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              {inferredData.items.map((item, i) => (
+                <div key={i} style={{
+                  padding: '18px 20px',
+                  background: C.white,
+                  borderRadius: 16,
+                  marginBottom: 10,
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}>
+                    <span style={{
+                      fontSize: 20,
+                      fontWeight: 700,
+                      color: C.charcoal,
+                      fontFamily,
+                    }}>
+                      {item.name}
+                    </span>
+                    <span style={{
+                      fontSize: 20,
+                      fontWeight: 800,
+                      color: C.terra,
+                      fontFamily,
+                    }}>
+                      {Math.round(item.calories * item.quantity)} cal
+                    </span>
+                  </div>
+                  <div style={{
+                    display: 'flex',
+                    gap: 14,
+                    marginTop: 8,
+                    fontSize: 15,
+                    color: C.warmGray,
+                    fontFamily,
+                    fontWeight: 600,
+                  }}>
+                    <span>{item.quantity} {item.unit}</span>
+                    <span>P: {Math.round(item.protein * item.quantity)}g</span>
+                    <span>C: {Math.round(item.carbs * item.quantity)}g</span>
+                    <span>F: {Math.round(item.fat * item.quantity)}g</span>
+                  </div>
+                </div>
+              ))}
+
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                padding: '14px 20px',
+                borderTop: `2px solid ${C.sand}`,
+                marginTop: 6,
+              }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: C.charcoal, fontFamily }}>
+                  Total
+                </span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: C.terra, fontFamily }}>
+                  {Math.round(inferredData.items.reduce((s, it) => s + it.calories * it.quantity, 0))} cal
+                </span>
+              </div>
+            </div>
+          )}
+
+          {inferredData.water_oz != null && inferredData.water_oz > 0 && (
+            <div style={{
+              padding: '18px 20px',
+              background: '#E8F4FD',
+              borderRadius: 16,
+              marginBottom: 10,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
             }}>
-              {inferredData.meal_name}
-            </span>
+              <span style={{ fontSize: 20, fontWeight: 700, color: C.ocean, fontFamily }}>Water</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: C.ocean, fontFamily }}>
+                {inferredData.water_oz} oz
+              </span>
+            </div>
+          )}
+
+          {inferredData.caffeine_mg != null && inferredData.caffeine_mg > 0 && (
+            <div style={{
+              padding: '18px 20px',
+              background: '#FFF3E0',
+              borderRadius: 16,
+              marginBottom: 10,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: C.charcoal, fontFamily }}>
+                {inferredData.caffeine_source || 'Caffeine'}
+              </span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: C.charcoal, fontFamily }}>
+                {inferredData.caffeine_mg} mg
+              </span>
+            </div>
+          )}
+
+          {inferredData.supplements && inferredData.supplements.length > 0 && (
+            <div style={{
+              padding: '18px 20px',
+              background: '#E8F5E9',
+              borderRadius: 16,
+              marginBottom: 20,
+            }}>
+              <span style={{ fontSize: 18, fontWeight: 700, color: '#2E7D32', fontFamily }}>
+                Supplements
+              </span>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+                {inferredData.supplements.map((s, i) => (
+                  <span key={i} style={{
+                    padding: '6px 16px',
+                    background: '#C8E6C9',
+                    borderRadius: 14,
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: '#1B5E20',
+                    fontFamily,
+                  }}>
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <p style={{
+              color: C.red,
+              fontSize: 16,
+              margin: '0 0 14px',
+              fontFamily,
+              fontWeight: 600,
+            }}>
+              {error}
+            </p>
           )}
         </div>
 
-        {/* Food items */}
-        {inferredData.items && inferredData.items.length > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            {inferredData.items.map((item, i) => (
-              <div key={i} style={{
-                padding: '12px 14px',
-                background: C.cream,
-                borderRadius: 14,
-                marginBottom: 8,
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}>
-                  <span style={{
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    color: C.charcoal,
-                    fontFamily: "'Outfit', sans-serif",
-                  }}>
-                    {item.name}
-                  </span>
-                  <span style={{
-                    fontSize: '0.95rem',
-                    fontWeight: 800,
-                    color: C.terra,
-                    fontFamily: "'Outfit', sans-serif",
-                  }}>
-                    {Math.round(item.calories * item.quantity)} cal
-                  </span>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  gap: 12,
-                  marginTop: 6,
-                  fontSize: '0.75rem',
-                  color: C.warmGray,
-                  fontFamily: "'Outfit', sans-serif",
-                  fontWeight: 600,
-                }}>
-                  <span>{item.quantity} {item.unit}</span>
-                  <span>P: {Math.round(item.protein * item.quantity)}g</span>
-                  <span>C: {Math.round(item.carbs * item.quantity)}g</span>
-                  <span>F: {Math.round(item.fat * item.quantity)}g</span>
-                </div>
-              </div>
-            ))}
-
-            {/* Totals row */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              padding: '10px 14px',
-              borderTop: `2px solid ${C.sand}`,
-              marginTop: 4,
-            }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: C.charcoal, fontFamily: "'Outfit', sans-serif" }}>
-                Total
-              </span>
-              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: C.terra, fontFamily: "'Outfit', sans-serif" }}>
-                {Math.round(inferredData.items.reduce((s, it) => s + it.calories * it.quantity, 0))} cal
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Water */}
-        {inferredData.water_oz && inferredData.water_oz > 0 && (
-          <div style={{
-            padding: '12px 14px',
-            background: '#E8F4FD',
-            borderRadius: 14,
-            marginBottom: 8,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: C.ocean, fontFamily: "'Outfit', sans-serif" }}>
-              Water
-            </span>
-            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: C.ocean, fontFamily: "'Outfit', sans-serif" }}>
-              {inferredData.water_oz} oz
-            </span>
-          </div>
-        )}
-
-        {/* Caffeine */}
-        {inferredData.caffeine_mg && inferredData.caffeine_mg > 0 && (
-          <div style={{
-            padding: '12px 14px',
-            background: '#FFF3E0',
-            borderRadius: 14,
-            marginBottom: 8,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: C.charcoal, fontFamily: "'Outfit', sans-serif" }}>
-              {inferredData.caffeine_source || 'Caffeine'}
-            </span>
-            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: C.charcoal, fontFamily: "'Outfit', sans-serif" }}>
-              {inferredData.caffeine_mg} mg
-            </span>
-          </div>
-        )}
-
-        {/* Supplements */}
-        {inferredData.supplements && inferredData.supplements.length > 0 && (
-          <div style={{
-            padding: '12px 14px',
-            background: '#E8F5E9',
-            borderRadius: 14,
-            marginBottom: 14,
-          }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#2E7D32', fontFamily: "'Outfit', sans-serif" }}>
-              Supplements
-            </span>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
-              {inferredData.supplements.map((s, i) => (
-                <span key={i} style={{
-                  padding: '3px 10px',
-                  background: '#C8E6C9',
-                  borderRadius: 12,
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  color: '#1B5E20',
-                  fontFamily: "'Outfit', sans-serif",
-                }}>
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {error && (
-          <p style={{ color: C.red, fontSize: '0.8rem', margin: '0 0 10px', fontFamily: "'Outfit', sans-serif" }}>
-            {error}
-          </p>
-        )}
-
-        {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{
+          padding: '16px 20px 24px',
+          display: 'flex',
+          gap: 12,
+        }}>
           <button
-            onClick={() => { setState('input'); setError('') }}
+            onClick={() => { setMode('input'); setError('') }}
             style={{
-              background: 'transparent',
-              border: 'none',
+              flex: 1,
+              height: 56,
+              background: C.white,
+              border: `2px solid ${C.sand}`,
+              borderRadius: 16,
+              fontSize: 18,
+              fontWeight: 700,
               color: C.warmGray,
               cursor: 'pointer',
-              fontSize: '0.85rem',
-              fontFamily: "'Outfit', sans-serif",
-              fontWeight: 500,
+              fontFamily,
             }}
           >
-            ← Edit
+            &#8592; Edit
           </button>
           <button
             onClick={handlePublish}
             disabled={isPublishing}
             style={{
+              flex: 2,
+              height: 56,
               background: C.fab,
               color: C.white,
               border: 'none',
-              borderRadius: 12,
-              padding: '10px 24px',
-              fontSize: '0.85rem',
+              borderRadius: 16,
+              fontSize: 20,
               fontWeight: 700,
               cursor: isPublishing ? 'wait' : 'pointer',
-              opacity: isPublishing ? 0.55 : 1,
-              fontFamily: "'Outfit', sans-serif",
+              opacity: isPublishing ? 0.5 : 1,
+              fontFamily,
               transition: 'opacity 0.15s',
             }}
           >
@@ -627,6 +699,7 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
 }
 
 function TypeBadge({ type }: { type: string }) {
+  const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
   const config: Record<string, { bg: string; color: string; label: string }> = {
     food: { bg: '#FDEBD0', color: '#E67E22', label: 'Food' },
     water: { bg: '#D6EAF8', color: '#2980B9', label: 'Water' },
@@ -637,13 +710,13 @@ function TypeBadge({ type }: { type: string }) {
   const c = config[type] || config.food
   return (
     <span style={{
-      padding: '4px 12px',
+      padding: '6px 16px',
       background: c.bg,
       borderRadius: 20,
-      fontSize: '0.75rem',
+      fontSize: 16,
       fontWeight: 700,
       color: c.color,
-      fontFamily: "'Outfit', sans-serif",
+      fontFamily,
       textTransform: 'uppercase',
       letterSpacing: '0.05em',
     }}>

@@ -724,7 +724,7 @@ export default function WorkoutPage({
         background: C.yellow,
         minHeight: "100vh",
         fontFamily,
-        paddingBottom: allDone ? 80 : 20,
+        paddingBottom: allDone ? 100 : 88,
       }}
     >
       {/* HEADER */}

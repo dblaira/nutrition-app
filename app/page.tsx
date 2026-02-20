@@ -1,9 +1,9 @@
-import { Dumbbell, Utensils, LogOut, Droplets } from "lucide-react";
+import { Dumbbell, Utensils, Droplets } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { signout } from "@/app/login/actions";
 import { QuickLogButtons } from "@/components/QuickLogButtons";
+import { DashboardTopBar } from "@/components/DashboardTopBar";
 
 /* ═══════════════════════════════════════════════════════════
    RESORT OPTIMISM PALETTE
@@ -28,13 +28,6 @@ const C = {
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`;
 
 /* ═══════════════════════════════════════════════════════════ */
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
 
 /* ── Massive Calorie Ring — Optimism Sun Poster Style ── */
 function CalorieRing({
@@ -371,88 +364,11 @@ export default async function Home() {
         fontFamily,
         overflowX: "hidden",
         paddingTop: "env(safe-area-inset-top, 0px)",
-        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 60px)",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)",
       }}
     >
       {/* ══════════ TOP BAR ══════════ */}
-      <div
-        style={{
-          padding: "18px 20px 0",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 36,
-              fontWeight: 800,
-              color: C.charcoal,
-              letterSpacing: "-0.03em",
-            }}
-          >
-            Optimism.
-          </h1>
-          <p
-            style={{
-              margin: "4px 0 0",
-              fontSize: 18,
-              color: C.charcoal,
-              opacity: 0.5,
-              fontWeight: 500,
-            }}
-          >
-            {getGreeting()}, {firstName}
-          </p>
-        </div>
-
-        {/* ── LOGOUT — top right, always visible ── */}
-        <form action={signout}>
-          <button
-            type="submit"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: C.charcoal + "14",
-              border: "none",
-              borderRadius: 14,
-              padding: "12px 18px",
-              color: C.charcoal,
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: "pointer",
-              fontFamily,
-              backdropFilter: "blur(8px)",
-              WebkitBackdropFilter: "blur(8px)",
-            }}
-          >
-            <LogOut size={18} />
-            Log out
-          </button>
-        </form>
-      </div>
-
-      {/* ── Date — large, obvious ── */}
-      <div style={{ padding: "4px 20px 0" }}>
-        <p
-          style={{
-            margin: 0,
-            fontSize: 16,
-            color: C.charcoal,
-            opacity: 0.4,
-            fontWeight: 500,
-          }}
-        >
-          {new Date().toLocaleDateString("en-US", {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </p>
-      </div>
+      <DashboardTopBar firstName={firstName} />
 
       {/* ══════════ CALORIE HERO — poster-scale ══════════ */}
       <div
