@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { Html5Qrcode } from 'html5-qrcode'
 
 interface BarcodeScannerProps {
   onResult: (product: any) => void
@@ -8,7 +9,6 @@ interface BarcodeScannerProps {
 }
 
 const C = {
-  terra: '#D4654A',
   charcoal: '#2C2C2C',
   warmGray: '#8C7B6B',
   white: '#FFFFFF',
@@ -16,41 +16,46 @@ const C = {
   sand: '#FAF0DB',
   red: '#CC2936',
   fab: '#2AA9DB',
+  green: '#1B8C4E',
 }
 
 export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
   const [manualCode, setManualCode] = useState('')
   const [isLooking, setIsLooking] = useState(false)
   const [error, setError] = useState('')
-  const [cameraActive, setCameraActive] = useState(false)
-  const [cameraScanSupported, setCameraScanSupported] = useState(true)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const [scanning, setScanning] = useState(false)
+  const [showLabelCapture, setShowLabelCapture] = useState(false)
+  const [isReadingLabel, setIsReadingLabel] = useState(false)
+  const scannerRef = useRef<Html5Qrcode | null>(null)
   const manualInputRef = useRef<HTMLInputElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const scanIntervalRef = useRef<NodeJS.Timeout>()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const containerId = 'barcode-reader'
+
+  const cleanup = useCallback(() => {
+    if (scannerRef.current) {
+      scannerRef.current.stop().catch(() => {})
+      scannerRef.current.clear()
+      scannerRef.current = null
+    }
+    setScanning(false)
+  }, [])
 
   useEffect(() => {
-    const supported = 'BarcodeDetector' in window
-    setCameraScanSupported(supported)
-    if (!supported) {
-      setTimeout(() => manualInputRef.current?.focus(), 200)
-    }
-  }, [])
+    return () => { cleanup() }
+  }, [cleanup])
 
   const lookupBarcode = useCallback(async (code: string) => {
     setIsLooking(true)
     setError('')
+    setShowLabelCapture(false)
     try {
       const res = await fetch(`/api/barcode-lookup?code=${encodeURIComponent(code)}`)
       const data = await res.json()
       if (!res.ok || !data.found) {
-        if (res.status === 404) {
-          setError(
-            `No nutrition info found for barcode ${code}. This product may not be in the database yet. You can log it manually using the text input instead.`
-          )
-        } else {
-          setError(data.error || 'Something went wrong looking up that barcode. Try again.')
-        }
+        setError(
+          `No nutrition info found for barcode ${code}. Try snapping a photo of the nutrition label instead.`
+        )
+        setShowLabelCapture(true)
         setIsLooking(false)
         return
       }
@@ -61,56 +66,76 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
     setIsLooking(false)
   }, [onResult])
 
-  const startCamera = useCallback(async () => {
+  const startScanning = useCallback(async () => {
+    cleanup()
+    setError('')
+    setShowLabelCapture(false)
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.play()
-      }
-      setCameraActive(true)
+      const scanner = new Html5Qrcode(containerId)
+      scannerRef.current = scanner
 
-      if ('BarcodeDetector' in window) {
-        const detector = new (window as any).BarcodeDetector({
-          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'],
-        })
-
-        scanIntervalRef.current = setInterval(async () => {
-          if (!videoRef.current) return
-          try {
-            const barcodes = await detector.detect(videoRef.current)
-            if (barcodes.length > 0) {
-              clearInterval(scanIntervalRef.current)
-              stopCamera()
-              lookupBarcode(barcodes[0].rawValue)
-            }
-          } catch {
-            // frame failed, keep trying
-          }
-        }, 500)
-      }
+      await scanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 280, height: 150 },
+          aspectRatio: 1.0,
+        },
+        (decodedText) => {
+          scanner.stop().catch(() => {})
+          setScanning(false)
+          lookupBarcode(decodedText)
+        },
+        () => {}
+      )
+      setScanning(true)
     } catch {
       setError('Camera access was blocked. You can allow it in your browser settings, or type the barcode number below.')
-      setCameraScanSupported(false)
       setTimeout(() => manualInputRef.current?.focus(), 200)
     }
-  }, [lookupBarcode])
+  }, [cleanup, lookupBarcode])
 
-  const stopCamera = useCallback(() => {
-    clearInterval(scanIntervalRef.current)
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
-      streamRef.current = null
+  const handleLabelPhoto = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsReadingLabel(true)
+    setError('')
+
+    try {
+      const reader = new FileReader()
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(',')[1]
+        const mediaType = file.type || 'image/jpeg'
+
+        try {
+          const res = await fetch('/api/read-label', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64, media_type: mediaType }),
+          })
+          const data = await res.json()
+
+          if (!res.ok || !data.found) {
+            setError(data.error || 'Could not read the nutrition label. Try a clearer photo with good lighting.')
+            setIsReadingLabel(false)
+            return
+          }
+          onResult(data)
+        } catch {
+          setError('Failed to read the label. Check your connection and try again.')
+          setIsReadingLabel(false)
+        }
+      }
+      reader.readAsDataURL(file)
+    } catch {
+      setError('Could not load the photo. Please try again.')
+      setIsReadingLabel(false)
     }
-    setCameraActive(false)
-  }, [])
 
-  useEffect(() => {
-    return () => { stopCamera() }
-  }, [stopCamera])
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }, [onResult])
 
   return (
     <div style={{
@@ -132,62 +157,106 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
         maxHeight: 'calc(100vh - 48px)',
         overflowY: 'auto',
       }}>
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: C.charcoal, fontFamily: "'Outfit', sans-serif" }}>
             Scan Barcode
           </h3>
-          <button onClick={() => { stopCamera(); onClose() }} style={{
+          <button onClick={() => { cleanup(); onClose() }} style={{
             background: 'none', border: 'none', fontSize: '1.5rem', color: C.warmGray, cursor: 'pointer',
-          }}>×</button>
+          }}>x</button>
         </div>
 
-        {/* Camera scanning — only show if the browser supports it */}
-        {cameraScanSupported && (
-          <>
-            {!cameraActive ? (
-              <button onClick={startCamera} style={{
-                width: '100%', padding: '40px 20px', borderRadius: 16,
-                border: `3px dashed ${C.sand}`, background: C.cream,
-                color: C.charcoal, fontSize: '0.9rem', fontWeight: 700,
-                cursor: 'pointer', fontFamily: "'Outfit', sans-serif",
-                marginBottom: 16,
-              }}>
-                Open Camera to Scan
-              </button>
-            ) : (
-              <div style={{ position: 'relative', marginBottom: 16, borderRadius: 16, overflow: 'hidden' }}>
-                <video
-                  ref={videoRef}
-                  style={{ width: '100%', borderRadius: 16, display: 'block' }}
-                  playsInline
-                  muted
-                />
-                <div style={{
-                  position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  pointerEvents: 'none',
-                }}>
-                  <div style={{
-                    width: '70%', height: 3, background: C.terra, opacity: 0.8, borderRadius: 2,
-                  }} />
-                </div>
-                <button onClick={stopCamera} style={{
-                  position: 'absolute', top: 8, right: 8, width: 32, height: 32, borderRadius: '50%',
-                  background: 'rgba(0,0,0,0.5)', border: 'none', color: C.white, fontSize: '1rem', cursor: 'pointer',
-                }}>×</button>
-              </div>
-            )}
-          </>
+        {/* Camera scanner area */}
+        <div
+          id={containerId}
+          style={{
+            width: '100%',
+            borderRadius: 16,
+            overflow: 'hidden',
+            marginBottom: 16,
+            minHeight: scanning ? 250 : 0,
+            display: scanning ? 'block' : 'none',
+          }}
+        />
+
+        {!scanning && !isLooking && !isReadingLabel && (
+          <button onClick={startScanning} style={{
+            width: '100%', padding: '40px 20px', borderRadius: 16,
+            border: `3px dashed ${C.sand}`, background: C.cream,
+            color: C.charcoal, fontSize: '1rem', fontWeight: 700,
+            cursor: 'pointer', fontFamily: "'Outfit', sans-serif",
+            marginBottom: 16,
+          }}>
+            Open Camera to Scan
+          </button>
         )}
 
-        {/* Message when camera scanning isn't available */}
-        {!cameraScanSupported && (
-          <div style={{
-            padding: '16px 18px', borderRadius: 16, background: '#FFF8E1',
-            border: '2px solid #FFE082', marginBottom: 16,
-            fontFamily: "'Outfit', sans-serif", fontSize: '0.9rem',
-            color: C.charcoal, lineHeight: 1.5,
+        {scanning && (
+          <button onClick={cleanup} style={{
+            width: '100%', padding: '12px', borderRadius: 12,
+            border: 'none', background: C.red, color: C.white,
+            fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer',
+            fontFamily: "'Outfit', sans-serif", marginBottom: 16,
           }}>
-            Camera scanning isn&apos;t available on this browser. Type the barcode number from the package below.
+            Stop Scanning
+          </button>
+        )}
+
+        {/* Loading states */}
+        {isLooking && (
+          <div style={{
+            padding: '20px', textAlign: 'center', color: C.charcoal,
+            fontSize: '1rem', fontWeight: 600, fontFamily: "'Outfit', sans-serif",
+          }}>
+            Looking up barcode...
+          </div>
+        )}
+
+        {isReadingLabel && (
+          <div style={{
+            padding: '20px', textAlign: 'center', color: C.charcoal,
+            fontSize: '1rem', fontWeight: 600, fontFamily: "'Outfit', sans-serif",
+          }}>
+            Reading nutrition label...
+          </div>
+        )}
+
+        {/* Snap nutrition label fallback */}
+        {showLabelCapture && (
+          <div style={{ marginBottom: 16 }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleLabelPhoto}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isReadingLabel}
+              style={{
+                width: '100%', padding: '18px 20px', borderRadius: 16,
+                border: `3px solid ${C.green}`, background: C.white,
+                color: C.green, fontSize: '1rem', fontWeight: 800,
+                cursor: 'pointer', fontFamily: "'Outfit', sans-serif",
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              }}
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke={C.green} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+              Snap the Nutrition Label Instead
+            </button>
+            <p style={{
+              fontSize: '0.8rem', color: C.warmGray, fontFamily: "'Outfit', sans-serif",
+              margin: '8px 0 0', textAlign: 'center', lineHeight: 1.4,
+            }}>
+              Take a photo of the Nutrition Facts panel on the package.
+            </p>
           </div>
         )}
 
@@ -197,7 +266,7 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
             fontSize: '0.85rem', color: C.charcoal, fontFamily: "'Outfit', sans-serif",
             margin: '0 0 10px', fontWeight: 600,
           }}>
-            {cameraScanSupported ? 'Or type the barcode number:' : 'Enter the barcode number:'}
+            {scanning ? 'Or type the barcode number:' : 'Enter barcode number:'}
           </p>
           <div style={{ display: 'flex', gap: 8 }}>
             <input
@@ -214,10 +283,10 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
               }}
               onFocus={e => { e.currentTarget.style.borderColor = C.fab }}
               onBlur={e => { e.currentTarget.style.borderColor = C.sand }}
-              onKeyDown={e => { if (e.key === 'Enter' && manualCode) lookupBarcode(manualCode) }}
+              onKeyDown={e => { if (e.key === 'Enter' && manualCode) { cleanup(); lookupBarcode(manualCode) } }}
             />
             <button
-              onClick={() => lookupBarcode(manualCode)}
+              onClick={() => { cleanup(); lookupBarcode(manualCode) }}
               disabled={!manualCode || isLooking}
               style={{
                 padding: '14px 20px', borderRadius: 12, border: 'none',
@@ -232,10 +301,11 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
           </div>
         </div>
 
+        {/* Error display */}
         {error && (
           <div style={{
             color: C.red, fontSize: '0.85rem', fontFamily: "'Outfit', sans-serif",
-            margin: 0, lineHeight: 1.5, padding: '12px 14px',
+            lineHeight: 1.5, padding: '12px 14px',
             background: '#FFF0F0', borderRadius: 12,
           }}>
             {error}

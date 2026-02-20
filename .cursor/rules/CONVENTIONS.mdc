@@ -4,7 +4,7 @@
 
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS, Lucide icons
 - **Backend:** Supabase (Auth + Postgres database)
-- **AI:** Anthropic SDK (claude-sonnet-4-20250514)
+- **AI:** Anthropic SDK (claude-sonnet-4-6)
 - **Deployment:** Vercel (nutrition-app-bay.vercel.app)
 - **Repository:** github.com/dblaira/nutrition-app
 
@@ -153,7 +153,7 @@ try {
 ## AI Integration Guidelines
 
 ### Anthropic SDK Usage
-- Use `claude-sonnet-4-20250514` for production features
+- Use `claude-sonnet-4-6` for production features
 - Keep prompts in separate files for maintainability
 - Cache AI responses where appropriate to manage costs
 

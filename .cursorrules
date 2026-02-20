@@ -62,7 +62,7 @@ Favor computation over hand-crafted rules. Build systems that scale with better 
 
 - **Frontend:** Next.js 14 (App Router), Tailwind CSS, Lucide icons
 - **Backend:** Supabase (Auth + Postgres)
-- **AI:** Anthropic SDK (claude-sonnet-4-20250514)
+- **AI:** Anthropic SDK (claude-sonnet-4-6)
 - **Deployment:** Vercel (nutrition-app-bay.vercel.app)
 
 ---

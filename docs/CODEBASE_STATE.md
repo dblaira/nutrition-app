@@ -9,7 +9,7 @@ Last updated: January 22, 2026
 - **Framework:** Next.js 14 (App Router)
 - **Auth + Database:** Supabase (Postgres with Row Level Security)
 - **Styling:** Tailwind CSS with CSS custom properties (HSL-based design tokens)
-- **AI:** Anthropic SDK (`@anthropic-ai/sdk` — claude-sonnet-4-20250514)
+- **AI:** Anthropic SDK (`@anthropic-ai/sdk` — claude-sonnet-4-6)
 - **Icons:** Lucide React
 - **Utilities:** clsx + tailwind-merge (via `cn()` helper in `lib/utils.ts`)
 - **Fonts:** Inter (body), Outfit (display/headings)
