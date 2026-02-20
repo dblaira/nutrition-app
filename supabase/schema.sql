@@ -24,7 +24,10 @@ create table foods (
   protein numeric not null, -- grams
   carbs numeric not null, -- grams
   fat numeric not null, -- grams
+  caffeine_mg numeric default 0, -- milligrams (coffee, tea, pre-workout, etc.)
   serving_size text, -- e.g. "100g" or "1 slice"
+  is_recipe boolean default false,
+  external_source text, -- 'manual', 'usda', 'open_food_facts', 'ai_parsed'
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -44,6 +47,16 @@ create table meal_entries (
   meal_id uuid references meals(id) on delete cascade not null,
   food_id uuid references foods(id) not null,
   quantity numeric default 1.0, -- Multiplier of serving size
+  external_source text default 'manual', -- 'manual', 'ai_parsed', 'voice', 'barcode', 'prediction'
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- RECIPE INGREDIENTS (Foods that compose a recipe)
+create table recipe_ingredients (
+  id uuid default uuid_generate_v4() primary key,
+  recipe_id uuid references foods(id) on delete cascade not null, -- the recipe (foods.is_recipe = true)
+  ingredient_id uuid references foods(id) not null, -- the component food
+  quantity numeric default 1.0,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -55,6 +68,7 @@ create table supplements (
   brand text,
   default_dosage text, -- e.g. "1 scoop"
   current_stock integer, -- estimated servings remaining
+  time_of_day text default 'morning', -- 'morning', 'evening', 'pre_workout', 'anytime'
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -64,6 +78,25 @@ create table supplement_logs (
   user_id uuid references auth.users(id) not null,
   supplement_id uuid references supplements(id) on delete cascade not null,
   taken_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- WATER LOGS
+create table water_logs (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users(id) not null,
+  amount_oz numeric not null,
+  external_source text default 'manual', -- 'manual', 'shortcut', 'health_auto_export'
+  logged_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- CAFFEINE LOGS
+create table caffeine_logs (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users(id) not null,
+  source text not null, -- 'espresso', 'coffee_12oz', 'pre_workout', etc.
+  amount_mg numeric not null,
+  external_source text default 'manual',
+  logged_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- DAILY ACTIVITY (From Apple Health via Shortcut)
@@ -105,6 +138,20 @@ create policy "Users can manage own supplements" on supplements for all using (a
 alter table supplement_logs enable row level security;
 create policy "Users can view own logs" on supplement_logs for select using (auth.uid() = user_id);
 create policy "Users can insert own logs" on supplement_logs for insert with check (auth.uid() = user_id);
+
+alter table recipe_ingredients enable row level security;
+create policy "Users can view recipe ingredients" on recipe_ingredients for select using (true);
+create policy "Users can manage own recipe ingredients" on recipe_ingredients for all using (
+  exists (select 1 from foods where foods.id = recipe_ingredients.recipe_id and foods.created_by = auth.uid())
+);
+
+alter table water_logs enable row level security;
+create policy "Users can view own water logs" on water_logs for select using (auth.uid() = user_id);
+create policy "Users can manage own water logs" on water_logs for all using (auth.uid() = user_id);
+
+alter table caffeine_logs enable row level security;
+create policy "Users can view own caffeine logs" on caffeine_logs for select using (auth.uid() = user_id);
+create policy "Users can manage own caffeine logs" on caffeine_logs for all using (auth.uid() = user_id);
 
 alter table daily_activity enable row level security;
 create policy "Users can view own activity" on daily_activity for select using (auth.uid() = user_id);

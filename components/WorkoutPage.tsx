@@ -120,11 +120,19 @@ export default function WorkoutPage({
   const [formModalUrl, setFormModalUrl] = useState<string | null>(null);
   const [weights, setWeights] = useState<WeightState>({});
   const [lastWeights, setLastWeights] = useState<WeightState>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [noteCopied, setNoteCopied] = useState(false);
+
+  const notesKey = `${storageKey}-notes`;
 
   useEffect(() => {
     setChecks(loadChecks(storageKey));
     setWeights(loadWeights(storageKey));
     setLastWeights(loadLastWeights(storageKey));
+    try {
+      const raw = localStorage.getItem(`${storageKey}-notes`);
+      if (raw) setNotes(JSON.parse(raw));
+    } catch {}
     setMounted(true);
   }, [storageKey]);
 
@@ -137,6 +145,17 @@ export default function WorkoutPage({
       });
     },
     [storageKey],
+  );
+
+  const updateNote = useCallback(
+    (id: string, text: string) => {
+      setNotes((prev) => {
+        const next = { ...prev, [id]: text };
+        try { localStorage.setItem(notesKey, JSON.stringify(next)); } catch {}
+        return next;
+      });
+    },
+    [notesKey],
   );
 
   const toggle = useCallback(
@@ -286,15 +305,8 @@ export default function WorkoutPage({
                   updateWeight(ex.id, lbs);
                 },
                 onNote: (text: string) => {
-                  // Store notes in localStorage
-                  try {
-                    const notesKey = `${storageKey}-notes`;
-                    const existing = JSON.parse(localStorage.getItem(notesKey) || "{}");
-                    existing[ex.id] = existing[ex.id]
-                      ? existing[ex.id] + " | " + text
-                      : text;
-                    localStorage.setItem(notesKey, JSON.stringify(existing));
-                  } catch {}
+                  const current = notes[ex.id] || "";
+                  updateNote(ex.id, current ? current + "\n" + text : text);
                 },
               }}
             />
@@ -320,21 +332,22 @@ export default function WorkoutPage({
         <div style={{ padding: "24px 20px 120px" }}>
           <h2
             style={{
-              fontSize: 34,
+              fontSize: 48,
               fontWeight: 800,
               color: C.black,
               margin: 0,
               fontFamily,
+              lineHeight: 1.1,
             }}
           >
             {ex.name}
           </h2>
           <p
             style={{
-              fontSize: 20,
-              fontWeight: 600,
+              fontSize: 32,
+              fontWeight: 700,
               color: C.black,
-              margin: "6px 0 24px",
+              margin: "8px 0 28px",
               fontFamily,
             }}
           >
@@ -347,7 +360,7 @@ export default function WorkoutPage({
               display: "flex",
               gap: 14,
               flexWrap: "wrap",
-              marginBottom: 24,
+              marginBottom: 28,
             }}
           >
             {Array.from({ length: ex.sets }).map((_, si) => {
@@ -357,13 +370,13 @@ export default function WorkoutPage({
                   key={si}
                   onClick={() => toggle(ex.id, si)}
                   style={{
-                    width: 72,
-                    height: 72,
-                    borderRadius: 14,
+                    width: 90,
+                    height: 90,
+                    borderRadius: 16,
                     border: `3px solid ${C.black}`,
                     background: done ? C.red : C.yellow,
                     color: done ? C.white : C.black,
-                    fontSize: done ? 28 : 18,
+                    fontSize: done ? 38 : 22,
                     fontWeight: 800,
                     cursor: "pointer",
                     fontFamily,
@@ -378,7 +391,8 @@ export default function WorkoutPage({
             })}
           </div>
 
-          {/* ── Weight Input (Phase 5) ── */}
+          {/* ── Weight Input — hidden for timed/cardio exercises ── */}
+          {!parseTimeFromDetail(ex.detail) && (
           <div
             style={{
               display: "flex",
@@ -485,13 +499,13 @@ export default function WorkoutPage({
               +
             </button>
           </div>
+          )}
 
-          {/* ── Timer — auto-loaded for timed exercises (Phase 2) ── */}
+          {/* ── Timer — full-screen dual display for timed exercises ── */}
           {(() => {
             const parsedTime = parseTimeFromDetail(ex.detail);
             if (!parsedTime) return null;
             const rest = ex.restSeconds ?? getSmartRestSeconds(ex.section);
-            // Find first incomplete set
             let activeSet = 0;
             for (let i = 0; i < ex.sets; i++) {
               if (!isSetDone(ex.id, i)) { activeSet = i; break; }
@@ -508,20 +522,20 @@ export default function WorkoutPage({
             );
           })()}
 
-          {/* ── Coaching Cue — always visible, large, full width (Phase 1) ── */}
+          {/* ── Coaching Cue — gym-readable: high contrast, comically large ── */}
           {ex.tip && (
             <div
               style={{
-                background: C.white,
-                borderLeft: `4px solid ${C.blue}`,
+                background: C.black,
+                borderLeft: `6px solid ${C.yellow}`,
                 borderRadius: 0,
-                padding: "16px 20px",
-                fontSize: 22,
-                fontWeight: 600,
-                lineHeight: 1.45,
-                color: C.black,
+                padding: "20px 24px",
+                fontSize: 32,
+                fontWeight: 800,
+                lineHeight: 1.35,
+                color: C.white,
                 fontFamily,
-                marginBottom: 20,
+                marginBottom: 24,
                 width: "100%",
                 boxSizing: "border-box",
               }}
@@ -558,19 +572,87 @@ export default function WorkoutPage({
             <FormModal url={formModalUrl} onClose={() => setFormModalUrl(null)} />
           )}
 
+          {/* ── Exercise Notes — gym-readable ── */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 12,
+            }}>
+              <label style={{
+                fontSize: 22,
+                fontWeight: 800,
+                color: C.black,
+                fontFamily,
+                textTransform: "uppercase",
+                letterSpacing: 1.5,
+              }}>
+                Notes
+              </label>
+              {notes[ex.id] && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `${ex.name}\n${notes[ex.id]}`
+                    );
+                    setNoteCopied(true);
+                    setTimeout(() => setNoteCopied(false), 1500);
+                  }}
+                  style={{
+                    background: noteCopied ? C.green : C.black,
+                    color: noteCopied ? C.white : C.yellow,
+                    border: `3px solid ${C.black}`,
+                    borderRadius: 999,
+                    padding: "10px 24px",
+                    fontSize: 16,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    fontFamily,
+                    transition: "background 0.2s",
+                  }}
+                >
+                  {noteCopied ? "Copied!" : "Copy"}
+                </button>
+              )}
+            </div>
+            <textarea
+              value={notes[ex.id] || ""}
+              onChange={(e) => updateNote(ex.id, e.target.value)}
+              placeholder="Adjustments, feedback, form cues..."
+              style={{
+                width: "100%",
+                minHeight: 180,
+                borderRadius: 14,
+                border: `3px solid ${C.black}`,
+                background: C.black,
+                padding: "20px 22px",
+                fontSize: 24,
+                fontWeight: 700,
+                fontFamily,
+                color: C.white,
+                resize: "vertical",
+                outline: "none",
+                boxSizing: "border-box",
+                lineHeight: 1.4,
+              }}
+              className="notes-textarea"
+            />
+          </div>
+
           {/* Nav buttons */}
-          <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
+          <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
             {focusIdx > 0 && (
               <button
                 onClick={() => setFocusIdx(focusIdx - 1)}
                 style={{
                   flex: 1,
-                  padding: "14px 0",
-                  borderRadius: 12,
+                  padding: "20px 0",
+                  borderRadius: 14,
                   border: `3px solid ${C.black}`,
                   background: C.white,
-                  fontSize: 16,
-                  fontWeight: 700,
+                  fontSize: 22,
+                  fontWeight: 800,
                   cursor: "pointer",
                   fontFamily,
                   color: C.black,
@@ -584,15 +666,15 @@ export default function WorkoutPage({
                 onClick={() => setFocusIdx(focusIdx + 1)}
                 style={{
                   flex: 1,
-                  padding: "14px 0",
-                  borderRadius: 12,
+                  padding: "20px 0",
+                  borderRadius: 14,
                   border: `3px solid ${C.black}`,
-                  background: C.white,
-                  fontSize: 16,
-                  fontWeight: 700,
+                  background: C.red,
+                  fontSize: 22,
+                  fontWeight: 800,
                   cursor: "pointer",
                   fontFamily,
-                  color: C.black,
+                  color: C.white,
                 }}
               >
                 Next &rarr;
@@ -602,12 +684,12 @@ export default function WorkoutPage({
                 onClick={() => setFocusIdx(null)}
                 style={{
                   flex: 1,
-                  padding: "14px 0",
-                  borderRadius: 12,
+                  padding: "20px 0",
+                  borderRadius: 14,
                   border: `3px solid ${C.black}`,
                   background: C.green,
-                  fontSize: 16,
-                  fontWeight: 700,
+                  fontSize: 22,
+                  fontWeight: 800,
                   cursor: "pointer",
                   fontFamily,
                   color: C.white,
@@ -783,6 +865,39 @@ export default function WorkoutPage({
           />
         </div>
       </header>
+
+      {/* EXPORT NOTES — only show when notes exist */}
+      {Object.values(notes).some((n) => n.trim()) && (
+        <div style={{ padding: "10px 16px 0" }}>
+          <button
+            onClick={() => {
+              const lines = exercises
+                .filter((ex) => notes[ex.id]?.trim())
+                .map((ex) => `## ${ex.name}\n${notes[ex.id]}`)
+                .join("\n\n");
+              const header = `# ${title} — Training Notes\n${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}\n\n`;
+              navigator.clipboard.writeText(header + lines);
+              alert("All notes copied to clipboard!");
+            }}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: 12,
+              border: `3px solid ${C.black}`,
+              background: C.blue,
+              color: C.white,
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily,
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+          >
+            Export All Notes to Clipboard
+          </button>
+        </div>
+      )}
 
       {/* MASONRY GRID */}
       <div style={{ display: "flex", gap: 12, padding: "12px 12px 0" }}>
