@@ -70,6 +70,10 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
     cleanup()
     setError('')
     setShowLabelCapture(false)
+    setScanning(true)
+
+    // Small delay so React renders the visible container before the library tries to use it
+    await new Promise(r => setTimeout(r, 100))
 
     try {
       const scanner = new Html5Qrcode(containerId)
@@ -89,9 +93,14 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
         },
         () => {}
       )
-      setScanning(true)
-    } catch {
-      setError('Camera access was blocked. You can allow it in your browser settings, or type the barcode number below.')
+    } catch (err: any) {
+      setScanning(false)
+      const msg = err?.message || ''
+      if (msg.includes('Permission') || msg.includes('NotAllowed')) {
+        setError('Camera access was blocked. Allow camera in your browser settings (Settings → Safari → Camera), or type the barcode number below.')
+      } else {
+        setError(`Camera could not start: ${msg || 'unknown error'}. Type the barcode number below instead.`)
+      }
       setTimeout(() => manualInputRef.current?.focus(), 200)
     }
   }, [cleanup, lookupBarcode])
@@ -167,16 +176,16 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
           }}>x</button>
         </div>
 
-        {/* Camera scanner area */}
+        {/* Camera scanner area — always in DOM so html5-qrcode can find it */}
         <div
           id={containerId}
           style={{
             width: '100%',
             borderRadius: 16,
             overflow: 'hidden',
-            marginBottom: 16,
+            marginBottom: scanning ? 16 : 0,
             minHeight: scanning ? 250 : 0,
-            display: scanning ? 'block' : 'none',
+            height: scanning ? 'auto' : 0,
           }}
         />
 

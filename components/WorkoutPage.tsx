@@ -192,6 +192,8 @@ export default function WorkoutPage({
   }, 0);
   const progress = totalSets > 0 ? doneSets / totalSets : 0;
   const allDone = progress >= 1;
+  const totalExercises = exercises.length;
+  const doneExercises = exercises.filter(isExDone).length;
 
   // Archive weights as "last session" when workout completes
   useEffect(() => {
@@ -330,6 +332,17 @@ export default function WorkoutPage({
 
         {/* Content */}
         <div style={{ padding: "24px 20px 120px" }}>
+          {/* Exercise counter */}
+          <div style={{
+            fontSize: 18,
+            fontWeight: 800,
+            color: C.black,
+            fontFamily,
+            opacity: 0.6,
+            marginBottom: 6,
+          }}>
+            Exercise {focusIdx + 1} of {totalExercises} — {totalExercises - focusIdx - 1} to go
+          </div>
           <h2
             style={{
               fontSize: 48,
@@ -844,10 +857,33 @@ export default function WorkoutPage({
           })}
         </div>
 
-        {/* Progress bar */}
+        {/* Exercise counter + Progress bar */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginTop: 10,
+          marginBottom: 4,
+        }}>
+          <span style={{
+            fontSize: 14,
+            fontWeight: 800,
+            color: C.black,
+            fontFamily,
+          }}>
+            {doneExercises} of {totalExercises} exercises done
+          </span>
+          <span style={{
+            fontSize: 14,
+            fontWeight: 800,
+            color: C.black,
+            fontFamily,
+          }}>
+            {totalExercises - doneExercises} to go
+          </span>
+        </div>
         <div
           style={{
-            marginTop: 10,
             height: 8,
             borderRadius: 4,
             border: `3px solid ${C.black}`,
