@@ -259,6 +259,16 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
     )
   }
 
+  // ── BARCODE SCANNER (must be checked before input state) ──
+  if (showBarcodeScanner) {
+    return (
+      <BarcodeScanner
+        onResult={handleBarcodeResult}
+        onClose={() => setShowBarcodeScanner(false)}
+      />
+    )
+  }
+
   // ── INPUT ──
   if (state === 'input') {
     return (
@@ -613,12 +623,7 @@ export function CaptureFAB({ onEntryCreated }: { onEntryCreated?: () => void }) 
     )
   }
 
-  return showBarcodeScanner ? (
-    <BarcodeScanner
-      onResult={handleBarcodeResult}
-      onClose={() => setShowBarcodeScanner(false)}
-    />
-  ) : null
+  return null
 }
 
 function TypeBadge({ type }: { type: string }) {
