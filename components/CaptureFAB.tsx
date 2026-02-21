@@ -91,14 +91,23 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
   const [isListening, setIsListening] = useState(false)
   const [voiceSupported, setVoiceSupported] = useState(false)
   const [voiceError, setVoiceError] = useState<string | null>(null)
+  const [isTranscribing, setIsTranscribing] = useState(false)
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
 
   useEffect(() => {
-    setVoiceSupported(!!(window.SpeechRecognition || window.webkitSpeechRecognition))
-    return () => { recognitionRef.current?.abort() }
+    // Voice is supported if we have MediaRecorder (for Whisper transcription)
+    setVoiceSupported(!!navigator.mediaDevices?.getUserMedia)
+    return () => { 
+      recognitionRef.current?.abort()
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop()
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -108,10 +117,15 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
       setInferredData(null)
       setError('')
       setVoiceError(null)
+      setIsTranscribing(false)
       setShowBarcodeScanner(false)
     } else {
       recognitionRef.current?.abort()
+      if (mediaRecorderRef.current?.state === 'recording') {
+        mediaRecorderRef.current.stop()
+      }
       setIsListening(false)
+      setIsTranscribing(false)
       setVoiceError(null)
       if (voiceTimeoutRef.current) {
         clearTimeout(voiceTimeoutRef.current)
@@ -127,122 +141,128 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
     }
     recognitionRef.current?.abort()
     recognitionRef.current = null
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop()
+    }
     setIsListening(false)
   }, [])
 
-  const startListening = useCallback(() => {
-    // Immediate feedback - this should ALWAYS show
-    setVoiceError('Starting...')
-    
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRec) {
-      const msg = 'Voice not supported on this browser'
-      setVoiceError(msg)
-      logWarn('CaptureFAB.voice', msg, { 
-        hasSpeechRecognition: !!window.SpeechRecognition,
-        hasWebkitSpeechRecognition: !!window.webkitSpeechRecognition,
-        userAgent: navigator.userAgent 
-      })
+  const startListening = useCallback(async () => {
+    // If already recording, stop and transcribe
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop()
       return
     }
-    
-    setVoiceError('Requesting mic...')
-    stopListening()
 
-    const recognition = new SpeechRec()
-    recognition.continuous = false
-    recognition.interimResults = false
-    recognition.lang = 'en-US'
+    setVoiceError(null)
+    audioChunksRef.current = []
 
-    let gotResult = false
-
-    // Timeout: if no result in 6 seconds, show error
-    voiceTimeoutRef.current = setTimeout(() => {
-      if (!gotResult && recognitionRef.current) {
-        recognitionRef.current.abort()
-        setIsListening(false)
-        setVoiceError('No speech detected. Try again or type below.')
-      }
-    }, 6000)
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      gotResult = true
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current)
-        voiceTimeoutRef.current = null
-      }
-      const last = event.results[event.results.length - 1]
-      if (last?.[0]) {
-        const text = last[0].transcript
-        setInputText(prev => prev ? `${prev} ${text}` : text)
-        setVoiceError(null)
-      }
-    }
-
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current)
-        voiceTimeoutRef.current = null
-      }
-      setIsListening(false)
-      
-      // Map error codes to user-friendly messages
-      const errorMessages: Record<string, string> = {
-        'not-allowed': 'Microphone access denied. Check Settings → Safari → Microphone.',
-        'no-speech': 'No speech detected. Tap mic and speak clearly.',
-        'audio-capture': 'Could not access microphone. Check permissions.',
-        'network': 'Network error. Check your connection.',
-        'aborted': '', // User cancelled, no message needed
-      }
-      
-      const message = errorMessages[event.error]
-      if (message) {
-        setVoiceError(message)
-        logWarn('CaptureFAB.voice', message, { errorCode: event.error })
-      } else if (event.error !== 'aborted') {
-        const fallbackMsg = `Voice error: ${event.error}. Try typing instead.`
-        setVoiceError(fallbackMsg)
-        logError('CaptureFAB.voice', fallbackMsg, { 
-          errorCode: event.error,
-          userAgent: navigator.userAgent
-        })
-      }
-    }
-
-    recognition.onend = () => { 
-      setIsListening(false)
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current)
-        voiceTimeoutRef.current = null
-      }
-    }
-
-    recognitionRef.current = recognition
-    
-    try {
-      setVoiceError('Starting recognition...')
-      recognition.start()
-      setIsListening(true)
-      setVoiceError('Listening! Speak now...')
-    } catch (err: any) {
-      const msg = `Start failed: ${err.message || 'unknown error'}`
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      const msg = 'Audio recording not supported on this device'
       setVoiceError(msg)
-      setIsListening(false)
-      logError('CaptureFAB.voice', msg, { 
-        error: err.message,
-        stack: err.stack,
-        userAgent: navigator.userAgent
-      })
+      logWarn('CaptureFAB.voice', msg, { userAgent: navigator.userAgent })
+      return
     }
-  }, [stopListening])
+
+    try {
+      setVoiceError('Requesting microphone...')
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      
+      // Determine supported MIME type
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
+        ? 'audio/webm' 
+        : MediaRecorder.isTypeSupported('audio/mp4') 
+          ? 'audio/mp4' 
+          : 'audio/wav'
+      
+      const mediaRecorder = new MediaRecorder(stream, { mimeType })
+      mediaRecorderRef.current = mediaRecorder
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          audioChunksRef.current.push(e.data)
+        }
+      }
+
+      mediaRecorder.onstop = async () => {
+        setIsListening(false)
+        setIsTranscribing(true)
+        setVoiceError('Transcribing...')
+
+        // Stop all tracks
+        stream.getTracks().forEach(t => t.stop())
+
+        const blob = new Blob(audioChunksRef.current, { type: mimeType })
+        const ext = mimeType.includes('webm') ? 'webm' : mimeType.includes('mp4') ? 'm4a' : 'wav'
+        
+        const form = new FormData()
+        form.append('file', blob, `recording.${ext}`)
+
+        try {
+          const res = await fetch('/api/transcribe', { method: 'POST', body: form })
+          const data = await res.json()
+          
+          if (!res.ok) {
+            const errMsg = data?.error || 'Transcription failed'
+            setVoiceError(errMsg)
+            logError('CaptureFAB.transcribe', errMsg, { details: data?.details })
+          } else {
+            const text = data.text?.trim() || ''
+            if (text) {
+              setInputText(prev => prev ? `${prev} ${text}` : text)
+              setVoiceError(null)
+            } else {
+              setVoiceError('No speech detected. Try again.')
+            }
+          }
+        } catch (err: any) {
+          const msg = err.message || 'Upload failed'
+          setVoiceError(msg)
+          logError('CaptureFAB.transcribe', msg, { userAgent: navigator.userAgent })
+        } finally {
+          setIsTranscribing(false)
+          mediaRecorderRef.current = null
+        }
+      }
+
+      mediaRecorder.onerror = (e: any) => {
+        const msg = e.error?.message || 'Recording error'
+        setVoiceError(msg)
+        logError('CaptureFAB.voice', msg, { userAgent: navigator.userAgent })
+        setIsListening(false)
+        stream.getTracks().forEach(t => t.stop())
+      }
+
+      mediaRecorder.start()
+      setIsListening(true)
+      setVoiceError('Recording... Tap mic to stop')
+
+      // Auto-stop after 15 seconds as safeguard
+      voiceTimeoutRef.current = setTimeout(() => {
+        if (mediaRecorderRef.current?.state === 'recording') {
+          mediaRecorderRef.current.stop()
+        }
+      }, 15000)
+
+    } catch (err: any) {
+      const msg = err.message || 'Microphone access denied'
+      setVoiceError(msg)
+      logError('CaptureFAB.voice', msg, { userAgent: navigator.userAgent })
+      setIsListening(false)
+    }
+  }, [])
 
   const handleClose = () => {
     recognitionRef.current?.abort()
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop()
+    }
     if (voiceTimeoutRef.current) {
       clearTimeout(voiceTimeoutRef.current)
       voiceTimeoutRef.current = null
     }
     setIsListening(false)
+    setIsTranscribing(false)
     setVoiceError(null)
     setMode('input')
     setInputText('')
@@ -404,19 +424,21 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
             padding: '36px 20px 20px',
           }}>
             <button
-              onClick={isListening ? stopListening : startListening}
+              onClick={isTranscribing ? undefined : startListening}
+              disabled={isTranscribing}
               aria-label={isListening ? 'Stop recording' : 'Start voice input'}
               style={{
                 width: 120,
                 height: 120,
                 borderRadius: '50%',
-                background: isListening ? C.red : C.fab,
+                background: isTranscribing ? C.ocean : isListening ? C.red : C.fab,
                 border: 'none',
                 color: C.white,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
+                cursor: isTranscribing ? 'wait' : 'pointer',
+                opacity: isTranscribing ? 0.7 : 1,
                 boxShadow: isListening
                   ? '0 0 0 16px rgba(204, 41, 54, 0.12), 0 8px 32px rgba(204, 41, 54, 0.25)'
                   : '0 8px 32px rgba(42, 169, 219, 0.25)',
@@ -431,12 +453,12 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
             <p style={{
               fontSize: 18,
               fontWeight: 600,
-              color: isListening ? C.red : C.warmGray,
+              color: isListening ? C.red : isTranscribing ? C.ocean : C.warmGray,
               fontFamily,
               marginTop: 16,
               marginBottom: 0,
             }}>
-              {isListening ? 'Listening...' : 'Tap to speak'}
+              {isTranscribing ? 'Transcribing...' : isListening ? 'Recording... Tap to stop' : 'Tap to speak'}
             </p>
             {voiceError && (
               <p style={{
