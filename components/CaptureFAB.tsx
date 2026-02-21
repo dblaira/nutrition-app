@@ -5,6 +5,7 @@ import { X, Mic, MicOff } from 'lucide-react'
 import { saveIntake } from '@/app/actions/intake'
 import { BarcodeScanner } from './BarcodeScanner'
 import { debugFetch } from '@/lib/debug-fetch'
+import { logWarn, logError } from '@/lib/debug-logger'
 
 interface FoodItem {
   name: string
@@ -135,7 +136,13 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
     
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRec) {
-      setVoiceError('Voice not supported on this browser')
+      const msg = 'Voice not supported on this browser'
+      setVoiceError(msg)
+      logWarn('CaptureFAB.voice', msg, { 
+        hasSpeechRecognition: !!window.SpeechRecognition,
+        hasWebkitSpeechRecognition: !!window.webkitSpeechRecognition,
+        userAgent: navigator.userAgent 
+      })
       return
     }
     
@@ -191,9 +198,14 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
       const message = errorMessages[event.error]
       if (message) {
         setVoiceError(message)
+        logWarn('CaptureFAB.voice', message, { errorCode: event.error })
       } else if (event.error !== 'aborted') {
-        setVoiceError(`Voice error: ${event.error}. Try typing instead.`)
-        console.warn('Speech error:', event.error)
+        const fallbackMsg = `Voice error: ${event.error}. Try typing instead.`
+        setVoiceError(fallbackMsg)
+        logError('CaptureFAB.voice', fallbackMsg, { 
+          errorCode: event.error,
+          userAgent: navigator.userAgent
+        })
       }
     }
 
@@ -213,8 +225,14 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
       setIsListening(true)
       setVoiceError('Listening! Speak now...')
     } catch (err: any) {
-      setVoiceError(`Start failed: ${err.message || 'unknown error'}`)
+      const msg = `Start failed: ${err.message || 'unknown error'}`
+      setVoiceError(msg)
       setIsListening(false)
+      logError('CaptureFAB.voice', msg, { 
+        error: err.message,
+        stack: err.stack,
+        userAgent: navigator.userAgent
+      })
     }
   }, [stopListening])
 
