@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { NotificationIcon, MenuIcon } from "@/components/PageHeaderIcons";
 
 /* ───────────────────────── PALETTE — PRIMARY ONLY ───────────────────────── */
 const C = {
@@ -111,14 +112,18 @@ export default function WorkoutsLandingPage() {
           <Link href="/" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 10, background: C.white + "14", textDecoration: "none" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={C.yellow} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
           </Link>
+          <NotificationIcon iconColor={C.yellow} bgColor={C.white + "14"} size={32} />
           <h1 style={{ fontSize: 22, fontWeight: 800, color: C.yellow, margin: 0, fontFamily, letterSpacing: -0.5 }}>Training Week</h1>
         </div>
-        <div style={{
-          background: C.yellow, borderRadius: 999, padding: "4px 12px",
-          display: "flex", alignItems: "center", gap: 6,
-        }}>
-          <span style={{ fontSize: 18, fontWeight: 800, color: C.black, fontFamily, lineHeight: 1 }}>{daysToRace()}</span>
-          <span style={{ fontSize: 9, fontWeight: 700, color: C.black, fontFamily, letterSpacing: 0.5, textTransform: "uppercase", opacity: 0.6 }}>days</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            background: C.yellow, borderRadius: 999, padding: "4px 12px",
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            <span style={{ fontSize: 18, fontWeight: 800, color: C.black, fontFamily, lineHeight: 1 }}>{daysToRace()}</span>
+            <span style={{ fontSize: 9, fontWeight: 700, color: C.black, fontFamily, letterSpacing: 0.5, textTransform: "uppercase", opacity: 0.6 }}>days</span>
+          </div>
+          <MenuIcon iconColor={C.yellow} bgColor={C.white + "14"} size={32} />
         </div>
       </header>
 

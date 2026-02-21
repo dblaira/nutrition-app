@@ -1,6 +1,7 @@
 import { Droplets, Coffee } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import { NotificationIcon, MenuIcon } from "@/components/PageHeaderIcons";
 
 const C = {
   ocean: "#2B7FB5",
@@ -62,7 +63,11 @@ export default async function HydrationPage() {
         paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)",
       }}
     >
-      <div style={{ padding: "24px 20px 0", textAlign: "center" }}>
+      <div style={{ padding: "24px 20px 0" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <NotificationIcon iconColor={C.white} bgColor="rgba(255,255,255,0.15)" size={40} />
+          <MenuIcon iconColor={C.white} bgColor="rgba(255,255,255,0.15)" size={40} />
+        </div>
         <h1
           style={{
             fontSize: 36,
@@ -70,6 +75,7 @@ export default async function HydrationPage() {
             color: C.white,
             margin: 0,
             letterSpacing: "-0.03em",
+            textAlign: "center",
           }}
         >
           Hydration

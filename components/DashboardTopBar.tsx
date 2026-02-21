@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Bell, Menu } from 'lucide-react'
+import Link from 'next/link'
 import { FullScreenMenu } from './FullScreenMenu'
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
@@ -35,22 +36,21 @@ export function DashboardTopBar({ firstName }: DashboardTopBarProps) {
           justifyContent: 'space-between',
           alignItems: 'center',
         }}>
-          <button
+          <Link
+            href="/settings"
             aria-label="Notifications"
             style={{
               width: 48,
               height: 48,
               borderRadius: '50%',
               background: C.charcoal + '0A',
-              border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer',
             }}
           >
             <Bell size={22} color={C.charcoal} strokeWidth={2} />
-          </button>
+          </Link>
 
           <h1 style={{
             margin: 0,

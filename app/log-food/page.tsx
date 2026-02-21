@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Search, Plus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { searchFoods, logFood } from "./actions";
+import { NotificationIcon, MenuIcon } from "@/components/PageHeaderIcons";
 
 // Mock initial data until we have a real DB seed
 
@@ -41,11 +42,15 @@ export default function LogFoodPage() {
 
     return (
         <div className="min-h-screen p-4 md:p-8 max-w-md mx-auto md:max-w-4xl space-y-6 pb-24">
-            <header className="flex items-center gap-4">
-                <Link href="/" className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <ArrowLeft size={24} />
-                </Link>
-                <h1 className="text-2xl font-display font-bold">Log Food</h1>
+            <header className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Link href="/" className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                        <ArrowLeft size={24} />
+                    </Link>
+                    <NotificationIcon iconColor="currentColor" bgColor="rgba(255,255,255,0.1)" size={36} />
+                    <h1 className="text-2xl font-display font-bold">Log Food</h1>
+                </div>
+                <MenuIcon iconColor="currentColor" bgColor="rgba(255,255,255,0.1)" size={36} />
             </header>
 
             {/* Meal Selector */}
