@@ -140,3 +140,82 @@ export async function getUnresolvedCount(): Promise<number> {
     return 0
   }
 }
+
+/* ───────────────────────── FEEDBACK ───────────────────────── */
+
+export type FeedbackCategory = 'bug' | 'design' | 'feature' | 'observation'
+
+export interface AppFeedback {
+  id?: string
+  category: FeedbackCategory
+  body: string
+  page?: string
+  created_at?: string
+  resolved?: boolean
+}
+
+export async function saveFeedback(
+  category: FeedbackCategory,
+  body: string,
+  page?: string
+): Promise<boolean> {
+  try {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return false
+
+    const { error } = await supabase.from('app_feedback').insert({
+      user_id: user.id,
+      category,
+      body,
+      page: page || null,
+    })
+
+    return !error
+  } catch {
+    return false
+  }
+}
+
+export async function getRecentFeedback(limit = 50): Promise<AppFeedback[]> {
+  try {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('app_feedback')
+      .select('id, category, body, page, created_at, resolved')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    return (data as AppFeedback[]) || []
+  } catch {
+    return []
+  }
+}
+
+export async function resolveFeedback(id: string): Promise<boolean> {
+  try {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('app_feedback')
+      .update({ resolved: true })
+      .eq('id', id)
+
+    return !error
+  } catch {
+    return false
+  }
+}
+
+export async function deleteFeedback(id: string): Promise<boolean> {
+  try {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('app_feedback')
+      .delete()
+      .eq('id', id)
+
+    return !error
+  } catch {
+    return false
+  }
+}

@@ -47,20 +47,50 @@ interface WorkoutPageProps {
   subtitle: string;
 }
 
-/* ───────────────────────── STORAGE ───────────────────────── */
-function loadChecks(key: string): CheckState {
-  if (typeof window === "undefined") return {};
+/* ───────────────────────── WEEKLY RESET ───────────────────────── */
+function getCurrentWeek(): string {
+  const now = new Date();
+  const jan1 = new Date(now.getFullYear(), 0, 1);
+  const dayOfYear = Math.ceil((now.getTime() - jan1.getTime()) / 86400000);
+  const weekNum = Math.ceil((dayOfYear + jan1.getDay()) / 7);
+  return `${now.getFullYear()}-W${String(weekNum).padStart(2, "0")}`;
+}
+
+interface WeekWrapper<T> {
+  week: string;
+  data: T;
+}
+
+function readWeekly<T>(key: string, fallback: T): { data: T; isNewWeek: boolean } {
+  if (typeof window === "undefined") return { data: fallback, isNewWeek: false };
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return { data: fallback, isNewWeek: false };
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && "week" in parsed) {
+      const wrapper = parsed as WeekWrapper<T>;
+      if (wrapper.week === getCurrentWeek()) {
+        return { data: wrapper.data, isNewWeek: false };
+      }
+      return { data: fallback, isNewWeek: true };
+    }
+    // Legacy data without week wrapper — treat as stale
+    return { data: fallback, isNewWeek: true };
   } catch {
-    return {};
+    return { data: fallback, isNewWeek: false };
   }
 }
-function saveChecks(key: string, c: CheckState) {
+
+function writeWeekly<T>(key: string, data: T) {
   try {
-    localStorage.setItem(key, JSON.stringify(c));
+    const wrapper: WeekWrapper<T> = { week: getCurrentWeek(), data };
+    localStorage.setItem(key, JSON.stringify(wrapper));
   } catch {}
+}
+
+/* ───────────────────────── STORAGE ───────────────────────── */
+function saveChecks(key: string, c: CheckState) {
+  writeWeekly(key, c);
 }
 
 /* ───────────────────────── WEIGHT STORAGE ───────────────────────── */
@@ -71,19 +101,11 @@ function weightKey(storageKey: string): string {
 }
 
 function loadWeights(storageKey: string): WeightState {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(weightKey(storageKey));
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+  return readWeekly<WeightState>(weightKey(storageKey), {}).data;
 }
 
 function saveWeights(storageKey: string, w: WeightState) {
-  try {
-    localStorage.setItem(weightKey(storageKey), JSON.stringify(w));
-  } catch {}
+  writeWeekly(weightKey(storageKey), w);
 }
 
 function loadLastWeights(storageKey: string): WeightState {
@@ -94,6 +116,22 @@ function loadLastWeights(storageKey: string): WeightState {
   } catch {
     return {};
   }
+}
+
+function archiveWeightsOnReset(storageKey: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(weightKey(storageKey));
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    // Extract weights from either wrapper or legacy format
+    const weights = parsed && typeof parsed === "object" && "data" in parsed
+      ? parsed.data
+      : parsed;
+    if (weights && Object.keys(weights).length > 0) {
+      localStorage.setItem(weightKey(storageKey) + "-last", JSON.stringify(weights));
+    }
+  } catch {}
 }
 
 /* ───────────────────────── RACE COUNTDOWN ───────────────────────── */
@@ -126,13 +164,22 @@ export default function WorkoutPage({
   const notesKey = `${storageKey}-notes`;
 
   useEffect(() => {
-    setChecks(loadChecks(storageKey));
+    const checksResult = readWeekly<CheckState>(storageKey, {});
+    if (checksResult.isNewWeek) {
+      archiveWeightsOnReset(storageKey);
+      saveChecks(storageKey, {});
+      saveWeights(storageKey, {});
+      try { localStorage.removeItem(`${storageKey}-notes`); } catch {}
+    }
+    setChecks(checksResult.data);
     setWeights(loadWeights(storageKey));
     setLastWeights(loadLastWeights(storageKey));
-    try {
-      const raw = localStorage.getItem(`${storageKey}-notes`);
-      if (raw) setNotes(JSON.parse(raw));
-    } catch {}
+    if (!checksResult.isNewWeek) {
+      try {
+        const raw = localStorage.getItem(`${storageKey}-notes`);
+        if (raw) setNotes(JSON.parse(raw));
+      } catch {}
+    }
     setMounted(true);
   }, [storageKey]);
 
