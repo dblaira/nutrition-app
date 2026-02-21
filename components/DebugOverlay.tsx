@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import { X, Trash2, RefreshCw, Bug, Plus, Check } from 'lucide-react'
+import { X, Trash2, RefreshCw, Bug, Plus, Check, ChevronDown } from 'lucide-react'
 import {
   subscribe,
   getUnreadCount,
@@ -43,6 +43,46 @@ const CATEGORIES: { id: FeedbackCategory; label: string; color: string }[] = [
   { id: 'observation', label: 'Observation', color: C.orange },
 ]
 
+const CATEGORY_PLACEHOLDERS: Record<FeedbackCategory, string> = {
+  bug: 'I tapped ___ and expected ___ but instead ___',
+  design: 'Something about ___ looks/feels off because ___',
+  feature: 'It would help if I could ___',
+  observation: 'I noticed that ___',
+}
+
+const CATEGORY_PROMPTS: Record<FeedbackCategory, string[]> = {
+  bug: ['Something broke...', 'Wrong info showing...', "Button doesn't work..."],
+  design: ['Hard to read...', 'Looks off...', 'Confusing layout...'],
+  feature: ['I wish I could...', 'Would be faster if...', 'Missing info about...'],
+  observation: ['Feels slow...', 'Works great...', "Didn't expect that..."],
+}
+
+const CATEGORY_DESCRIPTIONS: Record<FeedbackCategory, string> = {
+  bug: "Something isn't working right",
+  design: 'How it looks or feels',
+  feature: 'Something you wish existed',
+  observation: 'Anything you noticed, good or bad',
+}
+
+const PAGE_LABELS: Record<string, string> = {
+  '/': 'Home',
+  '/log-food': 'Food Log',
+  '/workouts': 'Training Week',
+  '/workouts/monday': 'Monday Workout',
+  '/workouts/tuesday': 'Tuesday Workout',
+  '/workouts/wednesday': 'Wednesday Workout',
+  '/workouts/thursday': 'Thursday Workout',
+  '/workouts/friday': 'Friday Workout',
+  '/workouts/saturday': 'Saturday Workout',
+  '/workouts/sunday': 'Sunday Workout',
+  '/hydration': 'Hydration',
+  '/settings': 'Settings',
+}
+
+function pageLabel(path: string) {
+  return PAGE_LABELS[path] || path
+}
+
 function categoryColor(cat: string) {
   return CATEGORIES.find((c) => c.id === cat)?.color || C.warmGray
 }
@@ -79,6 +119,26 @@ function formatDate(iso: string) {
   }
 }
 
+let lastUserAction = 'none captured'
+
+function handleGlobalClick(e: MouseEvent) {
+  const target = e.target as HTMLElement
+  if (!target) return
+  if (target.closest('[data-debug-overlay]')) return
+  const el = target.closest('button, a, input, select, textarea, [role="button"]')
+  if (!el) return
+  const label =
+    el.getAttribute('aria-label') ||
+    el.textContent?.trim() ||
+    el.tagName.toLowerCase()
+  const parent = el.parentElement?.closest('[id], [data-testid]')
+  const parentHint = parent
+    ? (parent.getAttribute('data-testid') || parent.id || '')
+    : ''
+  const desc = parentHint ? `${label} in ${parentHint}` : (label || 'unknown')
+  lastUserAction = desc.slice(0, 80)
+}
+
 export function DebugOverlay() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
@@ -98,11 +158,21 @@ export function DebugOverlay() {
   const [newCategory, setNewCategory] = useState<FeedbackCategory>('observation')
   const [newBody, setNewBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [selectedPage, setSelectedPage] = useState(pathname)
+  const [showPagePicker, setShowPagePicker] = useState(false)
+  const [justSubmitted, setJustSubmitted] = useState(false)
 
   useEffect(() => {
     const unsub = subscribe(() => setUnread(getUnreadCount()))
     getUnresolvedCount().then(setDbUnresolved)
     return unsub
+  }, [])
+
+  const feedbackContextRef = useRef<{ timestamp: string; page: string; lastAction: string } | null>(null)
+
+  useEffect(() => {
+    document.addEventListener('click', handleGlobalClick, true)
+    return () => document.removeEventListener('click', handleGlobalClick, true)
   }, [])
 
   const hasErrors = unread > 0 || dbUnresolved > 0
@@ -133,7 +203,23 @@ export function DebugOverlay() {
     setExpandedId(null)
     setShowNewForm(false)
     setNewBody('')
-  }, [])
+    setNewCategory('observation')
+    setSelectedPage(pathname)
+    setShowPagePicker(false)
+    setJustSubmitted(false)
+  }, [pathname])
+
+  const handleNewForm = useCallback(() => {
+    feedbackContextRef.current = {
+      timestamp: new Date().toISOString(),
+      page: pathname,
+      lastAction: lastUserAction,
+    }
+    setSelectedPage(pathname)
+    setShowPagePicker(false)
+    setJustSubmitted(false)
+    setShowNewForm(true)
+  }, [pathname])
 
   const handleClearAllErrors = useCallback(async () => {
     await markAllResolved()
@@ -144,14 +230,27 @@ export function DebugOverlay() {
   const handleSubmitFeedback = useCallback(async () => {
     if (!newBody.trim()) return
     setSubmitting(true)
-    const ok = await saveFeedback(newCategory, newBody.trim(), pathname)
+    const ctx = feedbackContextRef.current
+    const contextLine = ctx
+      ? `[auto] ${ctx.timestamp} · ${ctx.page} · Last action: ${ctx.lastAction}\n`
+      : ''
+    const ok = await saveFeedback(newCategory, contextLine + newBody.trim(), selectedPage)
     if (ok) {
+      setJustSubmitted(true)
+      setTimeout(() => setJustSubmitted(false), 1500)
       setNewBody('')
-      setShowNewForm(false)
+      setNewCategory('observation')
+      setSelectedPage(pathname)
+      setShowPagePicker(false)
+      feedbackContextRef.current = {
+        timestamp: new Date().toISOString(),
+        page: pathname,
+        lastAction: lastUserAction,
+      }
       await loadFeedback()
     }
     setSubmitting(false)
-  }, [newCategory, newBody, pathname, loadFeedback])
+  }, [newCategory, newBody, selectedPage, pathname, loadFeedback])
 
   const handleResolveFeedback = useCallback(async (id: string) => {
     await resolveFeedback(id)
@@ -222,6 +321,7 @@ export function DebugOverlay() {
       {/* Full-screen debug panel */}
       {isOpen && (
         <div
+          data-debug-overlay
           style={{
             position: 'fixed',
             inset: 0,
@@ -463,7 +563,7 @@ export function DebugOverlay() {
                 {/* New feedback button / form */}
                 {!showNewForm ? (
                   <button
-                    onClick={() => setShowNewForm(true)}
+                    onClick={handleNewForm}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -495,6 +595,18 @@ export function DebugOverlay() {
                       marginBottom: 16,
                     }}
                   >
+                    {justSubmitted && (
+                      <p style={{
+                        fontSize: 13,
+                        fontWeight: 700,
+                        color: C.green,
+                        margin: '0 0 10px',
+                        fontFamily,
+                      }}>
+                        Submitted!
+                      </p>
+                    )}
+
                     {/* Category pills */}
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                       {CATEGORIES.map((cat) => (
@@ -519,11 +631,46 @@ export function DebugOverlay() {
                       ))}
                     </div>
 
+                    {/* Category description */}
+                    <p style={{
+                      fontSize: 13,
+                      color: C.warmGray,
+                      margin: '0 0 10px',
+                      fontWeight: 600,
+                      fontFamily,
+                    }}>
+                      {CATEGORY_DESCRIPTIONS[newCategory]}
+                    </p>
+
+                    {/* Prompt chips */}
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+                      {CATEGORY_PROMPTS[newCategory].map((prompt) => (
+                        <button
+                          key={prompt}
+                          onClick={() => setNewBody(prompt + ' ')}
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: 14,
+                            border: `1px solid ${C.sand}`,
+                            background: C.cream,
+                            color: C.warmGray,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            fontFamily,
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+
                     {/* Body textarea */}
                     <textarea
                       value={newBody}
                       onChange={(e) => setNewBody(e.target.value)}
-                      placeholder="What did you notice?"
+                      placeholder={CATEGORY_PLACEHOLDERS[newCategory]}
                       autoFocus
                       style={{
                         width: '100%',
@@ -542,10 +689,58 @@ export function DebugOverlay() {
                       onBlur={(e) => { e.currentTarget.style.borderColor = C.sand }}
                     />
 
-                    {/* Page auto-tag */}
-                    <p style={{ fontSize: 12, color: C.warmGray, margin: '8px 0 12px', fontWeight: 600 }}>
-                      Page: {pathname}
-                    </p>
+                    {/* Page selector */}
+                    <div style={{ margin: '8px 0 12px' }}>
+                      <button
+                        onClick={() => setShowPagePicker(!showPagePicker)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: 0,
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontFamily,
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: selectedPage === pathname ? C.warmGray : C.ocean,
+                        }}
+                      >
+                        {pageLabel(selectedPage)}
+                        <ChevronDown
+                          size={14}
+                          style={{
+                            transition: 'transform 0.15s',
+                            transform: showPagePicker ? 'rotate(180deg)' : 'none',
+                          }}
+                        />
+                      </button>
+                      {showPagePicker && (
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+                          {Object.entries(PAGE_LABELS).map(([path, label]) => (
+                            <button
+                              key={path}
+                              onClick={() => { setSelectedPage(path); setShowPagePicker(false) }}
+                              style={{
+                                padding: '4px 10px',
+                                borderRadius: 14,
+                                border: selectedPage === path ? `2px solid ${C.ocean}` : `1px solid ${C.sand}`,
+                                background: selectedPage === path ? C.ocean + '15' : C.cream,
+                                color: selectedPage === path ? C.ocean : C.warmGray,
+                                fontSize: 12,
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                fontFamily,
+                                transition: 'all 0.15s',
+                              }}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
                     {/* Buttons */}
                     <div style={{ display: 'flex', gap: 10 }}>
@@ -655,7 +850,7 @@ export function DebugOverlay() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       {item.page && (
                         <span style={{ fontSize: 12, color: C.warmGray, fontWeight: 600 }}>
-                          {item.page}
+                          {pageLabel(item.page)}
                         </span>
                       )}
                       <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
