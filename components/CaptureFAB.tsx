@@ -89,9 +89,11 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
   const [error, setError] = useState('')
   const [isListening, setIsListening] = useState(false)
   const [voiceSupported, setVoiceSupported] = useState(false)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     setVoiceSupported(!!(window.SpeechRecognition || window.webkitSpeechRecognition))
@@ -104,14 +106,24 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
       setInputText('')
       setInferredData(null)
       setError('')
+      setVoiceError(null)
       setShowBarcodeScanner(false)
     } else {
       recognitionRef.current?.abort()
       setIsListening(false)
+      setVoiceError(null)
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current)
+        voiceTimeoutRef.current = null
+      }
     }
   }, [isOpen])
 
   const stopListening = useCallback(() => {
+    if (voiceTimeoutRef.current) {
+      clearTimeout(voiceTimeoutRef.current)
+      voiceTimeoutRef.current = null
+    }
     recognitionRef.current?.abort()
     recognitionRef.current = null
     setIsListening(false)
@@ -119,39 +131,95 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
 
   const startListening = useCallback(() => {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SpeechRec) return
+    if (!SpeechRec) {
+      setVoiceError('Voice input not supported on this device')
+      return
+    }
     stopListening()
+    setVoiceError(null)
 
     const recognition = new SpeechRec()
     recognition.continuous = false
     recognition.interimResults = false
     recognition.lang = 'en-US'
 
+    let gotResult = false
+
+    // Timeout: if no result in 6 seconds, show error
+    voiceTimeoutRef.current = setTimeout(() => {
+      if (!gotResult && recognitionRef.current) {
+        recognitionRef.current.abort()
+        setIsListening(false)
+        setVoiceError('No speech detected. Try again or type below.')
+      }
+    }, 6000)
+
     recognition.onresult = (event: SpeechRecognitionEvent) => {
+      gotResult = true
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current)
+        voiceTimeoutRef.current = null
+      }
       const last = event.results[event.results.length - 1]
       if (last?.[0]) {
         const text = last[0].transcript
         setInputText(prev => prev ? `${prev} ${text}` : text)
+        setVoiceError(null)
       }
     }
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      if (event.error !== 'aborted' && event.error !== 'no-speech') {
-        console.warn('Speech error:', event.error)
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current)
+        voiceTimeoutRef.current = null
       }
       setIsListening(false)
+      
+      // Map error codes to user-friendly messages
+      const errorMessages: Record<string, string> = {
+        'not-allowed': 'Microphone access denied. Check Settings → Safari → Microphone.',
+        'no-speech': 'No speech detected. Tap mic and speak clearly.',
+        'audio-capture': 'Could not access microphone. Check permissions.',
+        'network': 'Network error. Check your connection.',
+        'aborted': '', // User cancelled, no message needed
+      }
+      
+      const message = errorMessages[event.error]
+      if (message) {
+        setVoiceError(message)
+      } else if (event.error !== 'aborted') {
+        setVoiceError(`Voice error: ${event.error}. Try typing instead.`)
+        console.warn('Speech error:', event.error)
+      }
     }
 
-    recognition.onend = () => { setIsListening(false) }
+    recognition.onend = () => { 
+      setIsListening(false)
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current)
+        voiceTimeoutRef.current = null
+      }
+    }
 
     recognitionRef.current = recognition
-    recognition.start()
-    setIsListening(true)
+    
+    try {
+      recognition.start()
+      setIsListening(true)
+    } catch (err: any) {
+      setVoiceError('Could not start voice input. Try typing instead.')
+      setIsListening(false)
+    }
   }, [stopListening])
 
   const handleClose = () => {
     recognitionRef.current?.abort()
+    if (voiceTimeoutRef.current) {
+      clearTimeout(voiceTimeoutRef.current)
+      voiceTimeoutRef.current = null
+    }
     setIsListening(false)
+    setVoiceError(null)
     setMode('input')
     setInputText('')
     setInferredData(null)
@@ -339,13 +407,28 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
             <p style={{
               fontSize: 18,
               fontWeight: 600,
-              color: C.warmGray,
+              color: isListening ? C.red : C.warmGray,
               fontFamily,
               marginTop: 16,
               marginBottom: 0,
             }}>
               {isListening ? 'Listening...' : 'Tap to speak'}
             </p>
+            {voiceError && (
+              <p style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: C.terra,
+                fontFamily,
+                marginTop: 12,
+                marginBottom: 0,
+                textAlign: 'center',
+                padding: '0 20px',
+                maxWidth: 280,
+              }}>
+                {voiceError}
+              </p>
+            )}
           </div>
         )}
 
