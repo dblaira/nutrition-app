@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (error) {
-    console.error('Push subscribe error:', error)
+    const { logServerError } = await import('@/lib/server-logger')
+    logServerError('api/push/subscribe', 'Failed to save subscription', {
+      supabaseError: error.message,
+    }, user.id)
     return NextResponse.json({ error: 'Failed to save subscription' }, { status: 500 })
   }
 

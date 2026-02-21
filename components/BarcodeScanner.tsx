@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
+import { debugFetch } from '@/lib/debug-fetch'
 
 interface BarcodeScannerProps {
   onResult: (product: any) => void
@@ -49,7 +50,7 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
     setError('')
     setShowLabelCapture(false)
     try {
-      const res = await fetch(`/api/barcode-lookup?code=${encodeURIComponent(code)}`)
+      const res = await debugFetch(`/api/barcode-lookup?code=${encodeURIComponent(code)}`)
       const data = await res.json()
       if (!res.ok || !data.found) {
         setError(
@@ -119,7 +120,7 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
         const mediaType = file.type || 'image/jpeg'
 
         try {
-          const res = await fetch('/api/read-label', {
+          const res = await debugFetch('/api/read-label', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image: base64, media_type: mediaType }),

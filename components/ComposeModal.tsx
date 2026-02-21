@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { searchFoods } from '@/app/log-food/actions'
 import { saveIntake } from '@/app/actions/intake'
+import { debugFetch } from '@/lib/debug-fetch'
 
 const C = {
   sun: '#F2C744',
@@ -446,7 +447,7 @@ function CustomFoodForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
     setIsSubmitting(true)
 
     try {
-      const res = await fetch('/api/custom-food', {
+      const res = await debugFetch('/api/custom-food', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -571,7 +572,7 @@ function SupplementConfigForm({ onClose }: { onClose: () => void }) {
   }, [])
 
   const fetchSupplements = async () => {
-    const res = await fetch('/api/supplements')
+    const res = await debugFetch('/api/supplements')
     if (res.ok) {
       const data = await res.json()
       setSupplements(data)
@@ -582,7 +583,7 @@ function SupplementConfigForm({ onClose }: { onClose: () => void }) {
   const handleAdd = async () => {
     if (!newSup.name) return
     setIsAdding(true)
-    const res = await fetch('/api/supplements', {
+    const res = await debugFetch('/api/supplements', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -696,7 +697,7 @@ function RecipeBuilderForm({ onSuccess, onClose }: { onSuccess: () => void; onCl
   const searchTimeout = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
-    fetch('/api/recipes').then(r => r.json()).then(data => {
+    debugFetch('/api/recipes').then(r => r.json()).then(data => {
       if (Array.isArray(data)) setRecipes(data)
     })
   }, [])
@@ -748,7 +749,7 @@ function RecipeBuilderForm({ onSuccess, onClose }: { onSuccess: () => void; onCl
     setIsSubmitting(true)
     setError('')
 
-    const res = await fetch('/api/recipes', {
+    const res = await debugFetch('/api/recipes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

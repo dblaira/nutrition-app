@@ -24,8 +24,11 @@ export async function GET() {
         timezone: 'America/Los_Angeles',
       },
     })
-  } catch (err) {
-    console.error('Get preferences error:', err)
+  } catch (err: any) {
+    const { logServerError } = await import('@/lib/server-logger')
+    logServerError('api/notification-preferences', err.message || 'Internal server error', {
+      stack: err.stack,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -59,13 +62,19 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Update preferences error:', error)
+      const { logServerError } = await import('@/lib/server-logger')
+      logServerError('api/notification-preferences', 'Failed to save preferences', {
+        supabaseError: error.message,
+      }, user.id)
       return NextResponse.json({ error: 'Failed to save preferences' }, { status: 500 })
     }
 
     return NextResponse.json({ preferences: data })
-  } catch (err) {
-    console.error('Preferences route error:', err)
+  } catch (err: any) {
+    const { logServerError } = await import('@/lib/server-logger')
+    logServerError('api/notification-preferences', err.message || 'Internal server error', {
+      stack: err.stack,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

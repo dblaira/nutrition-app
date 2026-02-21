@@ -22,7 +22,10 @@ export async function POST(request: NextRequest) {
     .eq('endpoint', endpoint)
 
   if (error) {
-    console.error('Push unsubscribe error:', error)
+    const { logServerError } = await import('@/lib/server-logger')
+    logServerError('api/push/unsubscribe', 'Failed to remove subscription', {
+      supabaseError: error.message,
+    }, user.id)
     return NextResponse.json({ error: 'Failed to remove subscription' }, { status: 500 })
   }
 

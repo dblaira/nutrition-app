@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
+import { debugFetch } from '@/lib/debug-fetch'
 
 interface PushContextValue {
   permission: NotificationPermission | 'unsupported'
@@ -80,7 +81,7 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
 
       const subJSON = subscription.toJSON()
 
-      const response = await fetch('/api/push/subscribe', {
+      const response = await debugFetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +110,7 @@ export function PushNotificationProvider({ children }: { children: ReactNode }) 
       const subscription = await swRegistration.pushManager.getSubscription()
       if (!subscription) return
 
-      await fetch('/api/push/unsubscribe', {
+      await debugFetch('/api/push/unsubscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ endpoint: subscription.endpoint }),

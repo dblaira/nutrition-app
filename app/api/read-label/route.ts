@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/utils/supabase/server";
+import { logServerError } from "@/lib/server-logger";
 
 const anthropic = new Anthropic();
 
@@ -114,7 +115,9 @@ export async function POST(request: NextRequest) {
       source: "label_photo",
     });
   } catch (e: any) {
-    console.error("Label reading failed:", e);
+    logServerError("api/read-label", e.message || "Label reading failed", {
+      stack: e.stack,
+    }, user.id);
     return NextResponse.json(
       { error: `Failed to read label: ${e.message}` },
       { status: 500 }

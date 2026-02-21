@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { X, Mic, MicOff } from 'lucide-react'
 import { saveIntake } from '@/app/actions/intake'
 import { BarcodeScanner } from './BarcodeScanner'
+import { debugFetch } from '@/lib/debug-fetch'
 
 interface FoodItem {
   name: string
@@ -190,7 +191,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
     setError('')
 
     try {
-      const res = await fetch('/api/infer-intake', {
+      const res = await debugFetch('/api/infer-intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: inputText.trim() }),

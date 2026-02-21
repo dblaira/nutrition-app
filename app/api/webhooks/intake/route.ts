@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { logServerError } from "@/lib/server-logger";
 
 export async function GET() {
   return NextResponse.json({
@@ -116,7 +117,9 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (e: any) {
-    console.error("Intake webhook error:", e);
+    logServerError("webhook/intake", e.message || "Internal server error", {
+      stack: e.stack,
+    });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

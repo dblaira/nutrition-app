@@ -4,6 +4,7 @@ import "./globals.css";
 import { BottomTabBar } from "@/components/BottomTabBar";
 import { PushNotificationProvider } from "@/components/push-notification-provider";
 import { PushPermissionPrompt } from "@/components/push-permission-prompt";
+import { DebugOverlay } from "@/components/DebugOverlay";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -33,6 +34,7 @@ export default function RootLayout({
           {children}
           <PushPermissionPrompt />
           <BottomTabBar />
+          <DebugOverlay />
         </PushNotificationProvider>
       </body>
     </html>

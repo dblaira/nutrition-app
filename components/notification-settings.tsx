@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { usePush } from '@/components/push-notification-provider'
+import { debugFetch } from '@/lib/debug-fetch'
 
 interface Device {
   id: string
@@ -49,7 +50,7 @@ export function NotificationSettings() {
 
   const fetchDevices = useCallback(async () => {
     try {
-      const res = await fetch('/api/push/devices', { credentials: 'same-origin' })
+      const res = await debugFetch('/api/push/devices', { credentials: 'same-origin' })
       if (res.ok) {
         const data = await res.json()
         setDevices(data.devices || [])
@@ -61,7 +62,7 @@ export function NotificationSettings() {
 
   const fetchPrefs = useCallback(async () => {
     try {
-      const res = await fetch('/api/user/notification-preferences', { credentials: 'same-origin' })
+      const res = await debugFetch('/api/user/notification-preferences', { credentials: 'same-origin' })
       if (res.ok) {
         const data = await res.json()
         if (data.preferences) {
@@ -99,7 +100,7 @@ export function NotificationSettings() {
     setLoading(true)
     setTestStatus(null)
     try {
-      const res = await fetch('/api/push/test', {
+      const res = await debugFetch('/api/push/test', {
         method: 'POST',
         credentials: 'same-origin',
       })
@@ -119,7 +120,7 @@ export function NotificationSettings() {
     setSavingPrefs(true)
     setPrefsStatus(null)
     try {
-      const res = await fetch('/api/user/notification-preferences', {
+      const res = await debugFetch('/api/user/notification-preferences', {
         method: 'PUT',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },

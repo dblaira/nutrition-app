@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@/utils/supabase/server";
+import { logServerError } from "@/lib/server-logger";
 
 const anthropic = new Anthropic();
 
@@ -134,7 +135,9 @@ export async function POST() {
       );
     }
   } catch (e: any) {
-    console.error("Predict meals error:", e);
+    logServerError("api/predict-meals", e.message || "Internal server error", {
+      stack: e.stack,
+    }, user.id);
     return NextResponse.json(
       { error: e.message || "Internal server error" },
       { status: 500 }

@@ -19,13 +19,19 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Fetch devices error:', error)
+      const { logServerError } = await import('@/lib/server-logger')
+      logServerError('api/push/devices', 'Failed to fetch devices', {
+        supabaseError: error.message,
+      }, user.id)
       return NextResponse.json({ error: 'Failed to fetch devices' }, { status: 500 })
     }
 
     return NextResponse.json({ devices: devices || [] })
-  } catch (err) {
-    console.error('Devices route error:', err)
+  } catch (err: any) {
+    const { logServerError } = await import('@/lib/server-logger')
+    logServerError('api/push/devices', err.message || 'Internal server error', {
+      stack: err.stack,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

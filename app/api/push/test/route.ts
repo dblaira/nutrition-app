@@ -63,8 +63,11 @@ export async function POST() {
     const failed = results.filter(r => r.status === 'rejected').length
 
     return NextResponse.json({ sent, failed, total: subscriptions.length })
-  } catch (err) {
-    console.error('Push test error:', err)
+  } catch (err: any) {
+    const { logServerError } = await import('@/lib/server-logger')
+    logServerError('api/push/test', err.message || 'Internal server error', {
+      stack: err.stack,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { logServerError } from "@/lib/server-logger";
 
 export async function GET() {
     return NextResponse.json({ status: "online", message: "Activity Sync API is ready" });
@@ -47,14 +48,18 @@ export async function POST(request: NextRequest) {
             }, { onConflict: "user_id,date" });
 
         if (upsertError) {
-            console.error("Upsert error:", upsertError);
+            logServerError("webhook/activity", "Failed to update activity", {
+                supabaseError: upsertError.message,
+            }, profile.id);
             return NextResponse.json({ error: "Failed to update activity" }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });
 
-    } catch (e) {
-        console.error("Webhook error:", e);
+    } catch (e: any) {
+        logServerError("webhook/activity", e.message || "Internal server error", {
+            stack: e.stack,
+        });
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
