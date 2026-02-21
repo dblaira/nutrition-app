@@ -130,13 +130,17 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
   }, [])
 
   const startListening = useCallback(() => {
+    // Immediate feedback - this should ALWAYS show
+    setVoiceError('Starting...')
+    
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SpeechRec) {
-      setVoiceError('Voice input not supported on this device')
+      setVoiceError('Voice not supported on this browser')
       return
     }
+    
+    setVoiceError('Requesting mic...')
     stopListening()
-    setVoiceError(null)
 
     const recognition = new SpeechRec()
     recognition.continuous = false
@@ -204,10 +208,12 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
     recognitionRef.current = recognition
     
     try {
+      setVoiceError('Starting recognition...')
       recognition.start()
       setIsListening(true)
+      setVoiceError('Listening! Speak now...')
     } catch (err: any) {
-      setVoiceError('Could not start voice input. Try typing instead.')
+      setVoiceError(`Start failed: ${err.message || 'unknown error'}`)
       setIsListening(false)
     }
   }, [stopListening])
