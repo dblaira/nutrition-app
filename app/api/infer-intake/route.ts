@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@/utils/supabase/server";
+import { getUserFromRequest } from "@/utils/supabase/from-request";
 import { logServerError } from "@/lib/server-logger";
 
 const anthropic = new Anthropic();
@@ -51,10 +51,7 @@ Respond with ONLY valid JSON matching this schema:
 }`;
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, supabase } = await getUserFromRequest(request);
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
