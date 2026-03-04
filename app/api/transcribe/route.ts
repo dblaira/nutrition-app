@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
 
     // Forward the multipart form to OpenAI Whisper endpoint
     const forwardForm = new FormData()
-    // @ts-expect-error - convert Blob to File if needed
     forwardForm.append('file', file as any, 'recording.webm')
     forwardForm.append('model', 'gpt-4o-transcribe')
 
