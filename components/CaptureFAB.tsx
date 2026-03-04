@@ -120,7 +120,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
     }
   }, [isOpen])
 
-  const stopListening = useCallback(() => {
+  const _stopListening = useCallback(() => {
     if (voiceTimeoutRef.current) {
       clearTimeout(voiceTimeoutRef.current)
       voiceTimeoutRef.current = null
