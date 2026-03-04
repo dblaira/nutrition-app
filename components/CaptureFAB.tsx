@@ -120,19 +120,6 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
     }
   }, [isOpen])
 
-  const _stopListening = useCallback(() => {
-    if (voiceTimeoutRef.current) {
-      clearTimeout(voiceTimeoutRef.current)
-      voiceTimeoutRef.current = null
-    }
-    recognitionRef.current?.abort()
-    recognitionRef.current = null
-    if (mediaRecorderRef.current?.state === 'recording') {
-      mediaRecorderRef.current.stop()
-    }
-    setIsListening(false)
-  }, [])
-
   const startListening = useCallback(async () => {
     // If already recording, stop and transcribe
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
