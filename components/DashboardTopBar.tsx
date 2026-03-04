@@ -4,13 +4,9 @@ import { useState } from 'react'
 import { Bell, Menu } from 'lucide-react'
 import Link from 'next/link'
 import { FullScreenMenu } from './FullScreenMenu'
+import { C } from '@/lib/colors'
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
-
-const C = {
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-}
 
 interface DashboardTopBarProps {
   firstName: string

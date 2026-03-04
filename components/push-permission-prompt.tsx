@@ -74,7 +74,7 @@ export function PushPermissionPrompt() {
             padding: '0.65rem 1rem',
             borderRadius: '8px',
             border: 'none',
-            background: '#2AA9DB',
+            background: '#1D5D9B',
             color: '#fff',
             fontSize: '0.85rem',
             fontWeight: 600,

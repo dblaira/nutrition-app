@@ -4,26 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { QuickLogButtons } from "@/components/QuickLogButtons";
 import { DashboardTopBar } from "@/components/DashboardTopBar";
-
-/* ═══════════════════════════════════════════════════════════
-   RESORT OPTIMISM PALETTE
-   Warm, golden, intentional — poster confidence
-   ═══════════════════════════════════════════════════════════ */
-const C = {
-  sun: "#F2C744",
-  sunLight: "#F7DC6F",
-  sunPale: "#FFF3C4",
-  terra: "#D4654A",
-  terraLight: "#E8896F",
-  ocean: "#2B7FB5",
-  oceanLight: "#5DADE2",
-  sand: "#FAF0DB",
-  cream: "#FFFDF5",
-  charcoal: "#2C2C2C",
-  warmGray: "#8C7B6B",
-  white: "#FFFFFF",
-  green: "#27AE60",
-} as const;
+import { C } from "@/lib/colors";
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`;
 
@@ -70,7 +51,7 @@ function CalorieRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={C.terra + "18"}
+          stroke={C.orange + "18"}
           strokeWidth={strokeWidth}
         />
         <circle
@@ -78,7 +59,7 @@ function CalorieRing({
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={C.terra}
+          stroke={C.orange}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
@@ -325,8 +306,8 @@ export default async function Home() {
       consumed: consumed.protein,
       goal: goals.protein,
       unit: "g",
-      bg: "#CC2936",
-      bgLight: "#E04550",
+      bg: C.magenta,
+      bgLight: "#C92585",
       textColor: C.white,
       barBg: "rgba(255,255,255,0.2)",
       barFill: C.white,
@@ -336,8 +317,8 @@ export default async function Home() {
       consumed: consumed.carbs,
       goal: goals.carbs,
       unit: "g",
-      bg: "#0A1F44",
-      bgLight: "#1A3366",
+      bg: C.ocean,
+      bgLight: C.oceanLight,
       textColor: C.white,
       barBg: "rgba(255,255,255,0.2)",
       barFill: C.white,
@@ -347,8 +328,8 @@ export default async function Home() {
       consumed: consumed.fat,
       goal: goals.fat,
       unit: "g",
-      bg: C.terra,
-      bgLight: C.terraLight,
+      bg: C.orange,
+      bgLight: "#FBBA42",
       textColor: C.white,
       barBg: "rgba(255,255,255,0.2)",
       barFill: C.white,
@@ -580,7 +561,7 @@ export default async function Home() {
             {
               label: "Log Food",
               icon: <Utensils size={120} strokeWidth={1.2} />,
-              bg: "#CC2936",
+              bg: C.red,
               color: C.white,
               href: "/log-food",
             },
@@ -594,7 +575,7 @@ export default async function Home() {
             {
               label: "Water",
               icon: <Droplets size={120} strokeWidth={1.2} />,
-              bg: "#0A1F44",
+              bg: C.ocean,
               color: C.white,
               href: "#",
             },
@@ -663,7 +644,7 @@ export default async function Home() {
                 width: 200,
                 height: 200,
                 borderRadius: "50%",
-                background: C.terra,
+                background: C.red,
                 opacity: 0.12,
               }}
             />
@@ -790,7 +771,7 @@ export default async function Home() {
                     style={{
                       fontSize: 20,
                       fontWeight: 800,
-                      color: C.terra,
+                      color: C.orange,
                       fontFamily,
                     }}
                   >

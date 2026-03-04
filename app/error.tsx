@@ -2,17 +2,7 @@
 
 import { useEffect } from 'react'
 import { logError } from '@/lib/debug-logger'
-
-const C = {
-  sun: '#F2C744',
-  terra: '#D4654A',
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-  white: '#FFFFFF',
-  cream: '#FFFDF5',
-  sand: '#FAF0DB',
-  red: '#CC2936',
-}
+import { C } from '@/lib/colors'
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
 
@@ -120,7 +110,7 @@ export default function Error({
           style={{
             width: '100%',
             height: 52,
-            background: C.terra,
+            background: C.orange,
             color: C.white,
             border: 'none',
             borderRadius: 16,

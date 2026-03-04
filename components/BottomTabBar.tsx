@@ -5,15 +5,9 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Home, Utensils, Plus, Dumbbell, Droplets } from 'lucide-react'
 import { CaptureFAB } from './CaptureFAB'
+import { C } from '@/lib/colors'
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
-
-const C = {
-  fab: '#2AA9DB',
-  white: '#FFFFFF',
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-}
 
 const tabs = [
   { label: 'Home', icon: Home, href: '/', match: (p: string) => p === '/' },
@@ -74,7 +68,7 @@ export function BottomTabBar() {
                     width: 64,
                     height: 64,
                     borderRadius: '50%',
-                    background: C.fab,
+                    background: C.ocean,
                     border: 'none',
                     color: C.white,
                     display: 'flex',
@@ -82,7 +76,7 @@ export function BottomTabBar() {
                     justifyContent: 'center',
                     cursor: 'pointer',
                     marginTop: -24,
-                    boxShadow: '0 4px 20px rgba(42, 169, 219, 0.4)',
+                    boxShadow: '0 4px 20px rgba(29, 93, 155, 0.4)',
                     flexShrink: 0,
                   }}
                 >

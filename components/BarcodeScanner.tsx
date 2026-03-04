@@ -3,21 +3,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { debugFetch } from '@/lib/debug-fetch'
+import { C } from '@/lib/colors'
 
 interface BarcodeScannerProps {
   onResult: (product: any) => void
   onClose: () => void
-}
-
-const C = {
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-  white: '#FFFFFF',
-  cream: '#FFFDF5',
-  sand: '#FAF0DB',
-  red: '#CC2936',
-  fab: '#2AA9DB',
-  green: '#1B8C4E',
 }
 
 export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
@@ -291,7 +281,7 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
                 fontSize: '1.1rem', fontFamily: "'Outfit', sans-serif",
                 outline: 'none', color: C.charcoal, fontWeight: 600,
               }}
-              onFocus={e => { e.currentTarget.style.borderColor = C.fab }}
+              onFocus={e => { e.currentTarget.style.borderColor = C.ocean }}
               onBlur={e => { e.currentTarget.style.borderColor = C.sand }}
               onKeyDown={e => { if (e.key === 'Enter' && manualCode) { cleanup(); lookupBarcode(manualCode) } }}
             />
@@ -300,7 +290,7 @@ export function BarcodeScanner({ onResult, onClose }: BarcodeScannerProps) {
               disabled={!manualCode || isLooking}
               style={{
                 padding: '14px 20px', borderRadius: 12, border: 'none',
-                background: manualCode ? C.fab : C.sand,
+                background: manualCode ? C.ocean : C.sand,
                 color: manualCode ? C.white : C.warmGray,
                 fontSize: '1rem', fontWeight: 700, cursor: manualCode ? 'pointer' : 'not-allowed',
                 fontFamily: "'Outfit', sans-serif",

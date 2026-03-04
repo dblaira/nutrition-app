@@ -19,18 +19,7 @@ import {
   type FeedbackCategory,
 } from '@/lib/debug-logger'
 
-const C = {
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-  white: '#FFFFFF',
-  cream: '#FFFDF5',
-  sand: '#FAF0DB',
-  red: '#CC2936',
-  green: '#27AE60',
-  orange: '#E67E22',
-  ocean: '#2B7FB5',
-  purple: '#7B1FA2',
-}
+import { C } from '@/lib/colors'
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
 

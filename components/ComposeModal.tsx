@@ -4,18 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { searchFoods } from '@/app/log-food/actions'
 import { saveIntake } from '@/app/actions/intake'
 import { debugFetch } from '@/lib/debug-fetch'
-
-const C = {
-  sun: '#F2C744',
-  terra: '#D4654A',
-  ocean: '#2B7FB5',
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-  white: '#FFFFFF',
-  cream: '#FFFDF5',
-  sand: '#FAF0DB',
-  red: '#CC2936',
-}
+import { C } from '@/lib/colors'
 
 interface FoodEntry {
   id?: string
@@ -250,7 +239,7 @@ function LogMealForm({ onSuccess, onClose }: { onSuccess: () => void; onClose: (
               padding: '8px 14px',
               borderRadius: 20,
               border: 'none',
-              background: mealName === m ? C.terra : C.sand,
+              background: mealName === m ? C.orange : C.sand,
               color: mealName === m ? C.white : C.charcoal,
               fontSize: '0.8rem',
               fontWeight: 700,
@@ -383,10 +372,10 @@ function LogMealForm({ onSuccess, onClose }: { onSuccess: () => void; onClose: (
             marginTop: 10,
           }}>
             {[
-              { label: 'Cal', val: Math.round(totals.calories), color: C.terra },
+              { label: 'Cal', val: Math.round(totals.calories), color: C.orange },
               { label: 'P', val: Math.round(totals.protein), color: C.red },
-              { label: 'C', val: Math.round(totals.carbs), color: '#0A1F44' },
-              { label: 'F', val: Math.round(totals.fat), color: C.terra },
+              { label: 'C', val: Math.round(totals.carbs), color: C.ocean },
+              { label: 'F', val: Math.round(totals.fat), color: C.orange },
             ].map(m => (
               <div key={m.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 800, color: m.color, fontFamily: "'Outfit', sans-serif" }}>
@@ -413,7 +402,7 @@ function LogMealForm({ onSuccess, onClose }: { onSuccess: () => void; onClose: (
           padding: '14px',
           borderRadius: 14,
           border: 'none',
-          background: entries.length > 0 ? C.terra : C.sand,
+          background: entries.length > 0 ? C.orange : C.sand,
           color: entries.length > 0 ? C.white : C.warmGray,
           fontSize: '0.95rem',
           fontWeight: 700,
@@ -547,7 +536,7 @@ function CustomFoodForm({ onSuccess, onClose }: { onSuccess: () => void; onClose
 
       <button onClick={handleSubmit} disabled={isSubmitting} style={{
         width: '100%', padding: '14px', borderRadius: 14, border: 'none',
-        background: C.terra, color: C.white, fontSize: '0.95rem', fontWeight: 700,
+        background: C.orange, color: C.white, fontSize: '0.95rem', fontWeight: 700,
         cursor: 'pointer', fontFamily: "'Outfit', sans-serif",
         opacity: isSubmitting ? 0.55 : 1,
       }}>
@@ -671,7 +660,7 @@ function SupplementConfigForm({ onClose }: { onClose: () => void }) {
         </div>
         <button onClick={handleAdd} disabled={isAdding || !newSup.name} style={{
           width: '100%', padding: '10px', borderRadius: 10, border: 'none',
-          background: newSup.name ? C.terra : C.warmGray, color: C.white,
+          background: newSup.name ? C.orange : C.warmGray, color: C.white,
           fontSize: '0.85rem', fontWeight: 700, cursor: newSup.name ? 'pointer' : 'not-allowed',
           fontFamily: "'Outfit', sans-serif", opacity: isAdding ? 0.55 : 1,
         }}>
@@ -868,7 +857,7 @@ function RecipeBuilderForm({ onSuccess, onClose }: { onSuccess: () => void; onCl
             background: C.sand, borderRadius: 12, marginTop: 8,
           }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: C.terra, fontFamily: "'Outfit', sans-serif" }}>{Math.round(totals.calories)}</div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: C.orange, fontFamily: "'Outfit', sans-serif" }}>{Math.round(totals.calories)}</div>
               <div style={{ fontSize: '0.6rem', color: C.warmGray, fontFamily: "'Outfit', sans-serif" }}>Cal</div>
             </div>
             <div style={{ textAlign: 'center' }}>
@@ -876,11 +865,11 @@ function RecipeBuilderForm({ onSuccess, onClose }: { onSuccess: () => void; onCl
               <div style={{ fontSize: '0.6rem', color: C.warmGray, fontFamily: "'Outfit', sans-serif" }}>P</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0A1F44', fontFamily: "'Outfit', sans-serif" }}>{Math.round(totals.carbs)}g</div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: C.ocean, fontFamily: "'Outfit', sans-serif" }}>{Math.round(totals.carbs)}g</div>
               <div style={{ fontSize: '0.6rem', color: C.warmGray, fontFamily: "'Outfit', sans-serif" }}>C</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1rem', fontWeight: 800, color: C.terra, fontFamily: "'Outfit', sans-serif" }}>{Math.round(totals.fat)}g</div>
+              <div style={{ fontSize: '1rem', fontWeight: 800, color: C.orange, fontFamily: "'Outfit', sans-serif" }}>{Math.round(totals.fat)}g</div>
               <div style={{ fontSize: '0.6rem', color: C.warmGray, fontFamily: "'Outfit', sans-serif" }}>F</div>
             </div>
           </div>
@@ -891,7 +880,7 @@ function RecipeBuilderForm({ onSuccess, onClose }: { onSuccess: () => void; onCl
 
       <button onClick={handleSubmit} disabled={isSubmitting || !recipeName || ingredients.length === 0} style={{
         width: '100%', padding: '14px', borderRadius: 14, border: 'none',
-        background: recipeName && ingredients.length > 0 ? C.terra : C.sand,
+        background: recipeName && ingredients.length > 0 ? C.orange : C.sand,
         color: recipeName && ingredients.length > 0 ? C.white : C.warmGray,
         fontSize: '0.95rem', fontWeight: 700,
         cursor: recipeName && ingredients.length > 0 ? 'pointer' : 'not-allowed',

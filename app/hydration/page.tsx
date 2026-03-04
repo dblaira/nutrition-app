@@ -3,16 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { NotificationIcon, MenuIcon } from "@/components/PageHeaderIcons";
 
-const C = {
-  ocean: "#2B7FB5",
-  oceanLight: "#5DADE2",
-  charcoal: "#2C2C2C",
-  warmGray: "#8C7B6B",
-  white: "#FFFFFF",
-  cream: "#FFFDF5",
-  sand: "#FAF0DB",
-  navy: "#0A1F44",
-} as const;
+import { C } from "@/lib/colors";
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`;
 
@@ -181,7 +172,7 @@ export default async function HydrationPage() {
           <Coffee
             size={48}
             strokeWidth={1.5}
-            color={C.navy}
+            color={C.ocean}
             style={{ marginBottom: 12 }}
           />
           <div
@@ -223,7 +214,7 @@ export default async function HydrationPage() {
                   100
                 )}%`,
                 height: "100%",
-                background: todayCaffeineMg > caffeineLimit ? "#CC2936" : C.navy,
+                background: todayCaffeineMg > caffeineLimit ? C.red : C.ocean,
                 borderRadius: 4,
               }}
             />

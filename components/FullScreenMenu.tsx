@@ -4,17 +4,9 @@ import { X, Home, Utensils, Dumbbell, Droplets, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signout } from '@/app/login/actions'
+import { C } from '@/lib/colors'
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
-
-const C = {
-  charcoal: '#2C2C2C',
-  cream: '#FFFDF5',
-  warmGray: '#8C7B6B',
-  terra: '#D4654A',
-  sun: '#F2C744',
-  white: '#FFFFFF',
-}
 
 const menuItems = [
   { label: 'Home', icon: Home, href: '/' },
@@ -128,18 +120,18 @@ export function FullScreenMenu({ isOpen, onClose }: FullScreenMenuProps) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 12,
-              background: C.terra + '20',
+              background: C.red + '20',
               border: 'none',
               borderRadius: 16,
               cursor: 'pointer',
               fontFamily,
             }}
           >
-            <LogOut size={22} color={C.terra} />
+            <LogOut size={22} color={C.red} />
             <span style={{
               fontSize: 20,
               fontWeight: 700,
-              color: C.terra,
+              color: C.red,
             }}>
               Log out
             </span>

@@ -5,12 +5,12 @@ import Link from "next/link";
 
 /* ───────────────────────── PALETTE ───────────────────────── */
 const C = {
-  blue: "#0047AB",
-  yellow: "#F5C518",
-  red: "#CC2936",
+  blue: "#1D5D9B",
+  yellow: "#FFE15D",
+  red: "#DC3535",
   white: "#FFFFFF",
   black: "#1A1A1A",
-  orange: "#E8751A",
+  orange: "#F49D1A",
   green: "#1B8C4E",
   teal: "#008080",
 } as const;

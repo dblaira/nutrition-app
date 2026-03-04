@@ -6,6 +6,7 @@ import { saveIntake } from '@/app/actions/intake'
 import { BarcodeScanner } from './BarcodeScanner'
 import { debugFetch } from '@/lib/debug-fetch'
 import { logWarn, logError } from '@/lib/debug-logger'
+import { C } from '@/lib/colors'
 
 interface FoodItem {
   name: string
@@ -28,21 +29,6 @@ interface InferredIntake {
   caffeine_mg?: number | null
   supplements?: string[] | null
   raw_text: string
-}
-
-const C = {
-  sun: '#F2C744',
-  terra: '#D4654A',
-  terraLight: '#E8896F',
-  ocean: '#2B7FB5',
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-  white: '#FFFFFF',
-  cream: '#FFFDF5',
-  sand: '#FAF0DB',
-  red: '#CC2936',
-  navy: '#0A1F44',
-  fab: '#2AA9DB',
 }
 
 const fontFamily = `'Outfit', 'Avenir Next', 'Helvetica Neue', sans-serif`
@@ -431,7 +417,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
                 width: 120,
                 height: 120,
                 borderRadius: '50%',
-                background: isTranscribing ? C.ocean : isListening ? C.red : C.fab,
+                background: isTranscribing ? C.ocean : isListening ? C.red : C.ocean,
                 border: 'none',
                 color: C.white,
                 display: 'flex',
@@ -440,8 +426,8 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
                 cursor: isTranscribing ? 'wait' : 'pointer',
                 opacity: isTranscribing ? 0.7 : 1,
                 boxShadow: isListening
-                  ? '0 0 0 16px rgba(204, 41, 54, 0.12), 0 8px 32px rgba(204, 41, 54, 0.25)'
-                  : '0 8px 32px rgba(42, 169, 219, 0.25)',
+                  ? '0 0 0 16px rgba(220, 53, 53, 0.12), 0 8px 32px rgba(220, 53, 53, 0.25)'
+                  : '0 8px 32px rgba(29, 93, 155, 0.25)',
                 transition: 'all 0.3s ease',
               }}
             >
@@ -464,7 +450,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
               <p style={{
                 fontSize: 14,
                 fontWeight: 600,
-                color: C.terra,
+                color: C.orange,
                 fontFamily,
                 marginTop: 12,
                 marginBottom: 0,
@@ -501,7 +487,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
               background: C.white,
               boxSizing: 'border-box',
             }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = C.terra }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = C.orange }}
             onBlur={(e) => { e.currentTarget.style.borderColor = C.sand }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleInfer()
@@ -562,7 +548,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
             style={{
               width: '100%',
               height: 56,
-              background: C.fab,
+              background: C.ocean,
               color: C.white,
               border: 'none',
               borderRadius: 16,
@@ -661,7 +647,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
                     <span style={{
                       fontSize: 20,
                       fontWeight: 800,
-                      color: C.terra,
+                      color: C.orange,
                       fontFamily,
                     }}>
                       {Math.round(item.calories * item.quantity)} cal
@@ -694,7 +680,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
                 <span style={{ fontSize: 20, fontWeight: 700, color: C.charcoal, fontFamily }}>
                   Total
                 </span>
-                <span style={{ fontSize: 20, fontWeight: 800, color: C.terra, fontFamily }}>
+                <span style={{ fontSize: 20, fontWeight: 800, color: C.orange, fontFamily }}>
                   {Math.round(inferredData.items.reduce((s, it) => s + it.calories * it.quantity, 0))} cal
                 </span>
               </div>
@@ -806,7 +792,7 @@ export function CaptureFAB({ isOpen, onClose, onEntryCreated }: CaptureFABProps)
             style={{
               flex: 2,
               height: 56,
-              background: C.fab,
+              background: C.ocean,
               color: C.white,
               border: 'none',
               borderRadius: 16,

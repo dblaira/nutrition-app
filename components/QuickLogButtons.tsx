@@ -4,17 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { logWater, logCaffeine, logSupplementStack } from '@/app/actions/intake'
 import { ComposeModal } from './ComposeModal'
-
-const C = {
-  terra: '#D4654A',
-  ocean: '#2B7FB5',
-  charcoal: '#2C2C2C',
-  warmGray: '#8C7B6B',
-  white: '#FFFFFF',
-  cream: '#FFFDF5',
-  sand: '#FAF0DB',
-  navy: '#0A1F44',
-}
+import { C } from '@/lib/colors'
 
 interface QuickLogButtonsProps {
   todayWaterOz: number
@@ -159,7 +149,7 @@ export function QuickLogButtons({ todayWaterOz, todayCaffeineMg }: QuickLogButto
                 padding: '16px',
                 borderRadius: 18,
                 border: 'none',
-                background: C.navy,
+                background: C.ocean,
                 color: C.white,
                 cursor: 'pointer',
                 fontFamily: "'Outfit', sans-serif",
@@ -187,9 +177,9 @@ export function QuickLogButtons({ todayWaterOz, todayCaffeineMg }: QuickLogButto
                       flex: 1,
                       padding: '8px 0',
                       borderRadius: 12,
-                      border: `2px solid ${C.navy}`,
+                      border: `2px solid ${C.ocean}`,
                       background: C.white,
-                      color: C.navy,
+                      color: C.ocean,
                       fontSize: '0.7rem',
                       fontWeight: 700,
                       cursor: 'pointer',

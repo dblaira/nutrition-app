@@ -6,9 +6,9 @@ import { NotificationIcon, MenuIcon } from "@/components/PageHeaderIcons";
 
 /* ───────────────────────── PALETTE — PRIMARY ONLY ───────────────────────── */
 const C = {
-  red: "#CC2936",
-  blue: "#0047AB",
-  yellow: "#F5C518",
+  red: "#DC3535",
+  blue: "#1D5D9B",
+  yellow: "#FFE15D",
   black: "#1A1A1A",
   white: "#FFFFFF",
 } as const;

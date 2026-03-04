@@ -157,7 +157,7 @@ export function NotificationSettings() {
   }
 
   function getStatusColor() {
-    if (permission === 'granted' && isSubscribed) return '#2AA9DB'
+    if (permission === 'granted' && isSubscribed) return '#1D5D9B'
     if (permission === 'denied') return '#ef4444'
     return 'rgba(255,255,255,0.4)'
   }
@@ -210,7 +210,7 @@ export function NotificationSettings() {
                 height: '28px',
                 borderRadius: '14px',
                 border: 'none',
-                background: isSubscribed ? '#2AA9DB' : 'rgba(255,255,255,0.2)',
+                background: isSubscribed ? '#1D5D9B' : 'rgba(255,255,255,0.2)',
                 cursor: toggling ? 'wait' : 'pointer',
                 transition: 'background 0.2s ease',
                 opacity: toggling ? 0.6 : 1,
@@ -325,7 +325,7 @@ export function NotificationSettings() {
               {savingPrefs ? 'Saving...' : 'Save Preferences'}
             </button>
             {prefsStatus && (
-              <span style={{ fontSize: '0.8rem', color: prefsStatus === 'Saved' ? '#2AA9DB' : '#ef4444' }}>
+              <span style={{ fontSize: '0.8rem', color: prefsStatus === 'Saved' ? '#1D5D9B' : '#ef4444' }}>
                 {prefsStatus}
               </span>
             )}

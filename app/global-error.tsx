@@ -17,7 +17,7 @@ export default function GlobalError({
         style={{
           margin: 0,
           minHeight: '100vh',
-          background: '#F2C744',
+          background: '#FFE15D',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -61,7 +61,7 @@ export default function GlobalError({
 
           <div
             style={{
-              background: '#FAF0DB',
+              background: '#FBEEAC',
               borderRadius: 12,
               padding: '14px 16px',
               marginBottom: 24,
@@ -72,7 +72,7 @@ export default function GlobalError({
               style={{
                 fontSize: 13,
                 fontWeight: 600,
-                color: '#CC2936',
+                color: '#DC3535',
                 margin: 0,
                 fontFamily: 'monospace',
                 wordBreak: 'break-word',
@@ -87,7 +87,7 @@ export default function GlobalError({
             style={{
               width: '100%',
               height: 52,
-              background: '#D4654A',
+              background: '#F49D1A',
               color: '#FFFFFF',
               border: 'none',
               borderRadius: 16,

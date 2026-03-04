@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Bell, Menu } from 'lucide-react'
 import Link from 'next/link'
 import { FullScreenMenu } from './FullScreenMenu'
+import { C } from '@/lib/colors'
 
 interface PageHeaderIconsProps {
   iconColor?: string
@@ -11,7 +12,7 @@ interface PageHeaderIconsProps {
   size?: number
 }
 
-export function NotificationIcon({ iconColor = '#2C2C2C', bgColor = 'rgba(0,0,0,0.04)', size = 40 }: PageHeaderIconsProps) {
+export function NotificationIcon({ iconColor = C.charcoal, bgColor = 'rgba(0,0,0,0.04)', size = 40 }: PageHeaderIconsProps) {
   return (
     <Link
       href="/settings"
@@ -32,7 +33,7 @@ export function NotificationIcon({ iconColor = '#2C2C2C', bgColor = 'rgba(0,0,0,
   )
 }
 
-export function MenuIcon({ iconColor = '#2C2C2C', bgColor = 'rgba(0,0,0,0.04)', size = 40 }: PageHeaderIconsProps) {
+export function MenuIcon({ iconColor = C.charcoal, bgColor = 'rgba(0,0,0,0.04)', size = 40 }: PageHeaderIconsProps) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
