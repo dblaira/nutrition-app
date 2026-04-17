@@ -27,7 +27,7 @@ export async function signout() {
     const supabase = createClient();
     await supabase.auth.signOut();
     revalidatePath("/", "layout");
-    redirect("/login");
+    redirect("/");
 }
 
 export async function signup(formData: FormData) {
@@ -36,7 +36,7 @@ export async function signup(formData: FormData) {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -48,5 +48,13 @@ export async function signup(formData: FormData) {
         return redirect(`/login?message=${encodeURIComponent(error.message)}`);
     }
 
-    return redirect("/login?message=Check email to continue sign in process");
+    /* Session present when email confirmation is off in Supabase — skip email gate */
+    if (data.session) {
+        revalidatePath("/", "layout");
+        redirect("/");
+    }
+
+    return redirect(
+        "/login?message=Account created. Check your email if confirmation is required."
+    );
 }

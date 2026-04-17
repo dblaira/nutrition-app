@@ -22,7 +22,7 @@ export async function logFood(formData: FormData) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) return redirect("/login");
+    if (!user) return;
 
     const foodId = formData.get("foodId") as string;
     const mealName = formData.get("mealName") as string; // "Breakfast", "Lunch", etc.

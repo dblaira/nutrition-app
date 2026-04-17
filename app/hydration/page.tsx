@@ -1,6 +1,5 @@
 import { Droplets, Coffee } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import { NotificationIcon, MenuIcon } from "@/components/PageHeaderIcons";
 
 import { C } from "@/lib/colors";
@@ -13,33 +12,36 @@ export default async function HydrationPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return redirect("/login");
-
   const today = new Date().toISOString().split("T")[0];
 
-  const { data: waterLogs } = await supabase
-    .from("water_logs")
-    .select("amount_oz")
-    .eq("user_id", user.id)
-    .gte("logged_at", `${today}T00:00:00`)
-    .lte("logged_at", `${today}T23:59:59`);
+  let todayWaterOz = 0;
+  let todayCaffeineMg = 0;
 
-  const todayWaterOz = (waterLogs || []).reduce(
-    (sum: number, row: any) => sum + Number(row.amount_oz),
-    0
-  );
+  if (user) {
+    const { data: waterLogs } = await supabase
+      .from("water_logs")
+      .select("amount_oz")
+      .eq("user_id", user.id)
+      .gte("logged_at", `${today}T00:00:00`)
+      .lte("logged_at", `${today}T23:59:59`);
 
-  const { data: caffeineLogs } = await supabase
-    .from("caffeine_logs")
-    .select("amount_mg")
-    .eq("user_id", user.id)
-    .gte("logged_at", `${today}T00:00:00`)
-    .lte("logged_at", `${today}T23:59:59`);
+    todayWaterOz = (waterLogs || []).reduce(
+      (sum: number, row: any) => sum + Number(row.amount_oz),
+      0
+    );
 
-  const todayCaffeineMg = (caffeineLogs || []).reduce(
-    (sum: number, row: any) => sum + Number(row.amount_mg),
-    0
-  );
+    const { data: caffeineLogs } = await supabase
+      .from("caffeine_logs")
+      .select("amount_mg")
+      .eq("user_id", user.id)
+      .gte("logged_at", `${today}T00:00:00`)
+      .lte("logged_at", `${today}T23:59:59`);
+
+    todayCaffeineMg = (caffeineLogs || []).reduce(
+      (sum: number, row: any) => sum + Number(row.amount_mg),
+      0
+    );
+  }
 
   const waterGoal = 128;
   const caffeineLimit = 400;

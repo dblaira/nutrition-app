@@ -1,6 +1,5 @@
 import { Dumbbell, Utensils, Droplets } from "lucide-react";
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { QuickLogButtons } from "@/components/QuickLogButtons";
 import { DashboardTopBar } from "@/components/DashboardTopBar";
@@ -176,37 +175,51 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return redirect("/login");
-  }
+  let consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  const recentActivity: {
+    id: string;
+    name: string;
+    calories: number;
+    meal: string;
+  }[] = [];
+  let goals = {
+    calories: 2400,
+    protein: 150,
+    carbs: 250,
+    fat: 80,
+  };
+  let firstName = "Guest";
+  let todayWaterOz = 0;
+  let todayCaffeineMg = 0;
 
-  /* ── Profile ── */
-  let { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile) {
-    const { data: newProfile, error } = await supabase
+  if (user) {
+    /* ── Profile ── */
+    let { data: profile } = await supabase
       .from("profiles")
-      .insert({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || "Friend",
-      })
-      .select()
+      .select("*")
+      .eq("id", user.id)
       .single();
-    if (!error) profile = newProfile;
-  }
 
-  /* ── Today's meals ── */
-  const today = new Date().toISOString().split("T")[0];
+    if (!profile) {
+      const { data: newProfile, error } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || "Friend",
+        })
+        .select()
+        .single();
+      if (!error) profile = newProfile;
+    }
 
-  const { data: meals } = await supabase
-    .from("meals")
-    .select(
-      `
+    /* ── Today's meals ── */
+    const today = new Date().toISOString().split("T")[0];
+
+    const { data: meals } = await supabase
+      .from("meals")
+      .select(
+        `
       id,
       name,
       meal_entries (
@@ -221,78 +234,73 @@ export default async function Home() {
         )
       )
     `
-    )
-    .eq("user_id", user.id)
-    .eq("date", today);
+      )
+      .eq("user_id", user.id)
+      .eq("date", today);
 
-  /* ── Calculate totals ── */
-  let consumed = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-  const recentActivity: {
-    id: string;
-    name: string;
-    calories: number;
-    meal: string;
-  }[] = [];
-
-  (meals as unknown as Meal[])?.forEach((meal) => {
-    meal.meal_entries.forEach((entry) => {
-      const food = entry.foods;
-      if (!food) return;
-      const m = entry.quantity;
-      consumed.calories += food.calories * m;
-      consumed.protein += food.protein * m;
-      consumed.carbs += food.carbs * m;
-      consumed.fat += food.fat * m;
-      recentActivity.push({
-        id: entry.id,
-        name: food.name,
-        calories: Math.round(food.calories * m),
-        meal: meal.name,
+    /* ── Calculate totals ── */
+    (meals as unknown as Meal[])?.forEach((meal) => {
+      meal.meal_entries.forEach((entry) => {
+        const food = entry.foods;
+        if (!food) return;
+        const m = entry.quantity;
+        consumed.calories += food.calories * m;
+        consumed.protein += food.protein * m;
+        consumed.carbs += food.carbs * m;
+        consumed.fat += food.fat * m;
+        recentActivity.push({
+          id: entry.id,
+          name: food.name,
+          calories: Math.round(food.calories * m),
+          meal: meal.name,
+        });
       });
     });
-  });
 
-  consumed = {
-    calories: Math.round(consumed.calories),
-    protein: Math.round(consumed.protein),
-    carbs: Math.round(consumed.carbs),
-    fat: Math.round(consumed.fat),
-  };
+    consumed = {
+      calories: Math.round(consumed.calories),
+      protein: Math.round(consumed.protein),
+      carbs: Math.round(consumed.carbs),
+      fat: Math.round(consumed.fat),
+    };
 
-  const goals = {
-    calories: profile?.calorie_goal || 2400,
-    protein: profile?.protein_goal || 150,
-    carbs: profile?.carbs_goal || 250,
-    fat: profile?.fat_goal || 80,
-  };
+    goals = {
+      calories: profile?.calorie_goal || 2400,
+      protein: profile?.protein_goal || 150,
+      carbs: profile?.carbs_goal || 250,
+      fat: profile?.fat_goal || 80,
+    };
 
-  const firstName =
-    profile?.full_name?.split(" ")[0] ||
-    profile?.email?.[0]?.toUpperCase() ||
-    "Friend";
+    firstName =
+      profile?.full_name?.split(" ")[0] ||
+      profile?.email?.[0]?.toUpperCase() ||
+      "Friend";
 
-  /* ── Today's water & caffeine totals ── */
-  const { data: waterLogs } = await supabase
-    .from("water_logs")
-    .select("amount_oz")
-    .eq("user_id", user.id)
-    .gte("logged_at", `${today}T00:00:00`)
-    .lte("logged_at", `${today}T23:59:59`);
+    /* ── Today's water & caffeine totals ── */
+    const { data: waterLogs } = await supabase
+      .from("water_logs")
+      .select("amount_oz")
+      .eq("user_id", user.id)
+      .gte("logged_at", `${today}T00:00:00`)
+      .lte("logged_at", `${today}T23:59:59`);
 
-  const todayWaterOz = (waterLogs || []).reduce(
-    (sum: number, row: any) => sum + Number(row.amount_oz), 0
-  );
+    todayWaterOz = (waterLogs || []).reduce(
+      (sum: number, row: any) => sum + Number(row.amount_oz),
+      0
+    );
 
-  const { data: caffeineLogs } = await supabase
-    .from("caffeine_logs")
-    .select("amount_mg")
-    .eq("user_id", user.id)
-    .gte("logged_at", `${today}T00:00:00`)
-    .lte("logged_at", `${today}T23:59:59`);
+    const { data: caffeineLogs } = await supabase
+      .from("caffeine_logs")
+      .select("amount_mg")
+      .eq("user_id", user.id)
+      .gte("logged_at", `${today}T00:00:00`)
+      .lte("logged_at", `${today}T23:59:59`);
 
-  const todayCaffeineMg = (caffeineLogs || []).reduce(
-    (sum: number, row: any) => sum + Number(row.amount_mg), 0
-  );
+    todayCaffeineMg = (caffeineLogs || []).reduce(
+      (sum: number, row: any) => sum + Number(row.amount_mg),
+      0
+    );
+  }
 
   /* Today's workout route */
   const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
