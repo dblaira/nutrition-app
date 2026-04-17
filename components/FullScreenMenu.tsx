@@ -1,6 +1,6 @@
 'use client'
 
-import { X, Home, Utensils, Dumbbell, Droplets, LogOut } from 'lucide-react'
+import { X, Home, Utensils, Dumbbell, Droplets, Moon, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signout } from '@/app/login/actions'
@@ -13,6 +13,8 @@ const menuItems = [
   { label: 'Food', icon: Utensils, href: '/log-food' },
   { label: 'Workouts', icon: Dumbbell, href: '/workouts' },
   { label: 'Hydration', icon: Droplets, href: '/hydration' },
+  /** Marketing / investor Sleep story — same destination as tab bar */
+  { label: 'Sleep story', icon: Moon, href: '/pitch/sleep' },
 ]
 
 interface FullScreenMenuProps {

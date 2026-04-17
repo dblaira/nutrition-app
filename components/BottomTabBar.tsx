@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Home, Utensils, Plus, Dumbbell, Droplets } from 'lucide-react'
+import { Home, Utensils, Plus, Dumbbell, Droplets, Moon } from 'lucide-react'
 import { CaptureFAB } from './CaptureFAB'
 import { C } from '@/lib/colors'
 
@@ -15,6 +15,8 @@ const tabs = [
   { label: 'Log', icon: Plus, href: null, match: () => false },
   { label: 'Workouts', icon: Dumbbell, href: '/workouts', match: (p: string) => p.startsWith('/workouts') },
   { label: 'Hydration', icon: Droplets, href: '/hydration', match: (p: string) => p.startsWith('/hydration') },
+  /** Investor / client marketing facade — one tap, no URL bar */
+  { label: 'Sleep', icon: Moon, href: '/pitch/sleep', match: (p: string) => p.startsWith('/pitch') },
 ]
 
 export function BottomTabBar() {
