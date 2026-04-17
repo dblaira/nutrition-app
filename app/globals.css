@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    --crimson: #dc143c;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -54,8 +55,12 @@
     @apply border-border;
   }
   body {
-    background: #FFE15D !important;
+    background: #ffe15d !important;
     @apply text-foreground;
+  }
+
+  body:has([data-pitch-root]) {
+    background: #000000 !important;
   }
 }
 
@@ -72,6 +77,11 @@
   }
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+  .content-width {
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 

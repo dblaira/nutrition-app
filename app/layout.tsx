@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { BottomTabBar } from "@/components/BottomTabBar";
 import { PushNotificationProvider } from "@/components/push-notification-provider";
-import { PushPermissionPrompt } from "@/components/push-permission-prompt";
-import { DebugOverlay } from "@/components/DebugOverlay";
+import { RootChrome } from "@/components/RootChrome";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
 
 export const metadata: Metadata = {
   title: "Nutrition Tracker",
@@ -28,13 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} ${outfit.variable} font-sans antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${outfit.variable} ${playfair.variable} font-sans antialiased bg-background text-foreground`}
       >
         <PushNotificationProvider>
-          {children}
-          <PushPermissionPrompt />
-          <BottomTabBar />
-          <DebugOverlay />
+          <RootChrome>{children}</RootChrome>
         </PushNotificationProvider>
       </body>
     </html>
